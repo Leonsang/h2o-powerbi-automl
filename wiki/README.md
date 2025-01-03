@@ -1,45 +1,77 @@
 # 📚 Wiki H2O AutoML para Power BI
 
-> Documentación completa del proyecto
+> Documentación completa del proyecto de democratización de Machine Learning
 
 ## 📑 Índice
 
-1. [Introducción](01-introduccion.md)
-   - Qué es H2O AutoML
-   - Por qué usar este proyecto
-   - Casos de uso
+### 📘 1. [Introducción](01-introduccion.md)
+- ¿Qué es H2O AutoML?
+- Democratización del ML
+- Casos de uso empresarial
+- Arquitectura del sistema
 
-2. [Instalación](02-instalacion.md)
-   - Requisitos previos
-   - Proceso de instalación
-   - Verificación
+### 🛠️ 2. [Instalación y Configuración](02-instalacion.md)
+- Requisitos del sistema
+- Proceso de instalación
+- Configuración inicial
+- Verificación de instalación
 
-3. [Uso Básico](03-uso-basico.md)
-   - Primeros pasos
-   - Ejemplos simples
-   - Configuración inicial
+### 🎯 3. [Primeros Pasos](03-primeros-pasos.md)
+- Preparación de datos
+- Entrenamiento básico
+- Visualización de resultados
+- Interpretación de métricas
 
-4. [Características Avanzadas](04-caracteristicas-avanzadas.md)
-   - AutoML personalizado
-   - Optimización de hiperparámetros
-   - Gestión de modelos
+### 🔄 4. [Flujo de Trabajo](04-flujo-trabajo.md)
+- Ciclo de vida del modelo
+- Gestión de datos
+- Entrenamiento y validación
+- Despliegue y monitoreo
 
-5. [Integración Power BI](05-integracion-powerbi.md)
-   - Configuración en Power BI
-   - Scripts disponibles
-   - Ejemplos prácticos
+### 📊 5. [Análisis y Métricas](05-analisis.md)
+- Métricas disponibles
+- Interpretación de resultados
+- Visualizaciones
+- Mejores prácticas
 
-6. [Troubleshooting](06-troubleshooting.md)
-   - Problemas comunes
-   - Soluciones
-   - FAQ
+### 🤖 6. [AutoML Avanzado](06-automl-avanzado.md)
+- Configuración avanzada
+- Optimización de hiperparámetros
+- Selección de modelos
+- Ensambles
 
-7. [API Reference](07-api-reference.md)
-   - Clases principales
-   - Métodos
-   - Ejemplos de código
+### 🔌 7. [Integración Power BI](07-powerbi.md)
+- Conexión con Power BI
+- Scripts disponibles
+- Visualizaciones personalizadas
+- Actualización de datos
 
-8. [Contribuir](08-contribuir.md)
-   - Guía de contribución
-   - Estándares de código
-   - Proceso de PR 
+### 🔍 8. [Explicabilidad](08-explicabilidad.md)
+- Interpretación de modelos
+- SHAP values
+- Importancia de variables
+- Análisis de predicciones
+
+### ⚙️ 9. [Mantenimiento](09-mantenimiento.md)
+- Monitoreo de modelos
+- Actualización de datos
+- Gestión de logs
+- Backup y recuperación
+
+### 🔒 10. [Seguridad](10-seguridad.md)
+- Mejores prácticas
+- Gestión de accesos
+- Protección de datos
+- Auditoría
+
+### 🚀 11. [Optimización](11-optimizacion.md)
+- Rendimiento
+- Escalabilidad
+- Recursos de sistema
+- Casos extremos
+
+### 📋 12. [FAQ](12-faq.md)
+- Preguntas frecuentes
+- Solución de problemas
+- Tips y trucos
+- Recursos adicionales 
