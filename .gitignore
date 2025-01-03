@@ -1,0 +1,41 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+
+# Logs y archivos temporales
+logs/
+temp/
+*.log
+*.tmp
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de configuración local
+.env
+config/local_settings.json
+
+# Modelos y datos grandes
+modelos/*
+!modelos/.gitkeep
+datos/*
+!datos/README.md 

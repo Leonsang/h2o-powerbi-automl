@@ -1,0 +1,15 @@
+include README.md
+include LICENSE
+include requirements.txt
+include config/*.json
+include docs/*.md
+include datos/*.csv
+
+recursive-include src *.py
+recursive-include tests *.py
+recursive-include config *.py *.sh *.bat
+
+prune */__pycache__
+prune *.pyc
+prune *.pyo
+prune *.pyd 

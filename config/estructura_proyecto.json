@@ -1,0 +1,71 @@
+{
+    "src": {
+        "desc": "Código fuente del proyecto",
+        "archivos": [
+            "__init__.py",
+            "IntegradorH2O_PBI.py",
+            "init_h2o_server.py",
+            "modelo_manager.py",
+            "script_pbi.py"
+        ]
+    },
+    "tests": {
+        "desc": "Tests unitarios y de integración",
+        "archivos": [
+            "__init__.py",
+            "test_instalacion.py",
+            "test_integracion.py",
+            "test_pbi.py",
+            "test_suite.py"
+        ]
+    },
+    "docs": {
+        "desc": "Documentación del proyecto",
+        "archivos": [
+            "documentacion.md"
+        ]
+    },
+    "config": {
+        "desc": "Configuración e instalación",
+        "archivos": [
+            "__init__.py",
+            "setup.py",
+            "install.bat",
+            "install.sh",
+            "crear_directorios.py",
+            "limpiar_todo.py",
+            "estructura_proyecto.json"
+        ]
+    },
+    "datos": {
+        "desc": "Datos de ejemplo y pruebas",
+        "archivos": [
+            "matriculas.csv",
+            "ventas_simuladas.csv"
+        ]
+    },
+    "modelos": {
+        "desc": "Modelos entrenados",
+        "estructura": {
+            "tipo_modelo_timestamp": {
+                "modelo": ["modelo.h2o", "metadata.json"],
+                "metricas": ["basic.json", "advanced.json"],
+                "graficos": ["features.png", "perf.png"],
+                "resultados": ["pred.csv", "stats.json"]
+            }
+        }
+    },
+    "logs": {
+        "desc": "Logs del sistema",
+        "archivos": [
+            "h2o.log",
+            "app.log"
+        ]
+    },
+    "temp": {
+        "desc": "Archivos temporales",
+        "subdirs": [
+            "h2o_temp"
+        ]
+    }
+}
