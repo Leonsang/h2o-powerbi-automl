@@ -1,74 +1,69 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-from datetime import datetime
-from .analisis_manager import AnalisisManager
+import numpy as np
+from .logger import Logger
 
 def analizar_resultados(modelo, datos, predicciones, tipo_modelo='automl'):
-    """Analiza resultados del modelo y genera reportes"""
-    try:
-        import seaborn as sns
-        usar_seaborn = True
-    except ImportError:
-        usar_seaborn = False
+    """
+    Analiza resultados del modelo y genera métricas e insights.
     
-    analisis = AnalisisManager(usar_seaborn=usar_seaborn)
+    Args:
+        modelo: Modelo H2O entrenado
+        datos: DataFrame original
+        predicciones: Predicciones del modelo
+        tipo_modelo: Tipo de modelo usado
+        
+    Returns:
+        Dict con análisis completo
+    """
+    logger = Logger('analisis_resultados')
     
     try:
-        # Generar reporte básico sin depender de seaborn
-        reporte = {
-            'timestamp': datetime.now().strftime("%Y%m%d_%H%M%S"),
-            'tipo_modelo': tipo_modelo,
-            'metricas_basicas': {
-                'shape_datos': datos.shape,
-                'shape_predicciones': predicciones.shape if hasattr(predicciones, 'shape') else None
-            }
+        # 1. Métricas básicas
+        metricas_basicas = {
+            'r2': modelo.r2(),
+            'rmse': modelo.rmse(),
+            'mae': modelo.mae()
         }
         
-        # Agregar análisis avanzado si seaborn está disponible
-        if usar_seaborn:
-            reporte.update(analisis.generar_reporte_completo(modelo, datos, predicciones))
+        # 2. Análisis de residuos
+        residuos = None
+        if hasattr(predicciones, 'values'):
+            residuos = datos.values - predicciones.values
+        
+        # 3. Importancia de variables
+        importancia = None
+        if hasattr(modelo, 'varimp'):
+            importancia = modelo.varimp(use_pandas=True)
+        
+        # 4. Estadísticas de predicciones
+        stats_predicciones = {
+            'min': float(np.min(predicciones)),
+            'max': float(np.max(predicciones)),
+            'mean': float(np.mean(predicciones)),
+            'std': float(np.std(predicciones))
+        }
+        
+        # 5. Generar reporte
+        reporte = {
+            'metricas_basicas': metricas_basicas,
+            'estadisticas_predicciones': stats_predicciones,
+            'tipo_modelo': tipo_modelo,
+            'num_registros': len(datos),
+            'timestamp': pd.Timestamp.now().isoformat()
+        }
+        
+        if residuos is not None:
+            reporte['analisis_residuos'] = {
+                'mean': float(np.mean(residuos)),
+                'std': float(np.std(residuos))
+            }
             
+        if importancia is not None:
+            reporte['importancia_variables'] = importancia.to_dict()
+            
+        logger.info("Análisis de resultados completado")
         return reporte
         
     except Exception as e:
-        print(f"Error analizando resultados: {str(e)}")
-        return None
-
-def comparar_modelos(modelos_dict):
-    """Compara diferentes modelos y genera análisis comparativo"""
-    analisis = AnalisisManager()
-    
-    try:
-        # 1. Recopilar métricas de todos los modelos
-        metricas_comparativas = {}
-        for nombre, modelo in modelos_dict.items():
-            metricas = analisis._calcular_metricas_rendimiento(modelo)
-            metricas_comparativas[nombre] = metricas
-        
-        # 2. Crear DataFrame comparativo
-        df_comparacion = pd.DataFrame(metricas_comparativas).T
-        
-        # 3. Generar gráfico comparativo
-        fig, ax = plt.subplots(figsize=(12, 6))
-        df_comparacion.plot(kind='bar', ax=ax)
-        plt.title('Comparación de Modelos')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        
-        # 4. Guardar resultados
-        analisis.guardar_metricas(
-            df_comparacion, 
-            'comparativa', 
-            'rendimiento'
-        )
-        analisis.guardar_grafico(
-            fig, 
-            'comparativa', 
-            'comparacion_modelos'
-        )
-        
-        return df_comparacion
-        
-    except Exception as e:
-        print(f"Error comparando modelos: {str(e)}")
-        return None 
+        logger.error(f"Error en análisis de resultados: {str(e)}")
+        raise 

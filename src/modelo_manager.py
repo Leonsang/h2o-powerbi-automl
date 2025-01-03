@@ -1,109 +1,159 @@
 import os
-import h2o
 import json
+import h2o
 import pandas as pd
 from datetime import datetime
-from pathlib import Path
 from .logger import Logger
 
 class ModeloManager:
+    """
+    Gestiona el ciclo de vida completo de los modelos H2O.
+    
+    Responsabilidades:
+    - Guardar y cargar modelos
+    - Gestionar predicciones
+    - Mantener métricas y metadata
+    """
+    
     def __init__(self):
         self.logger = Logger('modelo_manager')
-        self.tipos_modelo = [
-            'automl', 'gbm', 'rf', 'glm', 'deeplearning', 
-            'xgboost', 'lightgbm', 'stackedensemble', 'drf'
-        ]
-        self.modelos_activos = {}
-        self.historial = []
+        self.ruta_modelos = 'modelos'
+        self.ruta_predicciones = os.path.join(self.ruta_modelos, 'predicciones')
+        self.ultimo_modelo = None
+        self.predicciones = {}
+        self._crear_directorios()
 
-    def crear_estructura_directorios(self, ruta_base):
-        """Crea la estructura de directorios para el modelo"""
-        directorios = ['modelo', 'metricas', 'graficos', 'resultados']
-        for dir in directorios:
-            Path(os.path.join(ruta_base, dir)).mkdir(parents=True, exist_ok=True)
-        return {dir: os.path.join(ruta_base, dir) for dir in directorios}
+    def _crear_directorios(self):
+        """Asegura que existan los directorios necesarios"""
+        os.makedirs(self.ruta_modelos, exist_ok=True)
+        os.makedirs(self.ruta_predicciones, exist_ok=True)
 
     def guardar_modelo(self, modelo, tipo_modelo, metricas=None):
-        """Guarda el modelo y todos sus artefactos asociados"""
-        if tipo_modelo not in self.tipos_modelo:
-            raise ValueError(f"Tipo de modelo no válido: {tipo_modelo}")
-            
-        # 1. Crear estructura de directorios
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        ruta_base = f"modelos/{tipo_modelo}_{timestamp}"
-        dirs = self.crear_estructura_directorios(ruta_base)
+        """
+        Guarda el modelo con su metadata asociada.
         
+        Args:
+            modelo: Modelo H2O entrenado
+            tipo_modelo: Tipo de modelo (ej: 'automl', 'gbm')
+            metricas: Dict con métricas del modelo
+        """
         try:
-            self.logger.info(f"Guardando modelo tipo: {tipo_modelo}")
-            # 2. Guardar modelo H2O
-            h2o.save_model(modelo, path=dirs['modelo'])
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            nombre_modelo = f"{tipo_modelo}_{timestamp}"
             
-            # 3. Guardar métricas
-            if metricas:
-                # Métricas básicas
-                with open(os.path.join(dirs['metricas'], 'basic.json'), 'w') as f:
-                    json.dump(metricas.get('metricas_basicas', {}), f, indent=4)
-                
-                # Métricas H2O
-                with open(os.path.join(dirs['metricas'], 'h2o_metrics.json'), 'w') as f:
-                    json.dump(metricas.get('h2o_metrics', {}), f, indent=4)
-                
-                # Cross-validation
-                with open(os.path.join(dirs['metricas'], 'cross_val.json'), 'w') as f:
-                    json.dump(metricas.get('cross_validation', {}), f, indent=4)
+            # 1. Guardar modelo H2O
+            ruta_modelo = h2o.save_model(
+                model=modelo,
+                path=self.ruta_modelos,
+                force=True
+            )
             
-            # 4. Guardar resultados
-            if 'leaderboard' in metricas:
-                pd.DataFrame(metricas['leaderboard']).to_csv(
-                    os.path.join(dirs['resultados'], 'leaderboard.csv')
-                )
-            
-            # 5. Guardar metadata
+            # 2. Guardar metadata
             metadata = {
-                'timestamp': timestamp,
-                'tipo_modelo': tipo_modelo,
-                'ruta_base': ruta_base,
-                'model_type': metricas.get('model_type'),
-                'training_time': metricas.get('training_time')
+                'nombre': nombre_modelo,
+                'tipo': tipo_modelo,
+                'fecha': timestamp,
+                'ruta': ruta_modelo,
+                'metricas': metricas or {},
+                'parametros': modelo.get_params()
             }
             
-            with open(os.path.join(dirs['modelo'], 'metadata.json'), 'w') as f:
+            ruta_metadata = os.path.join(
+                self.ruta_modelos,
+                f"{nombre_modelo}_metadata.json"
+            )
+            
+            with open(ruta_metadata, 'w') as f:
                 json.dump(metadata, f, indent=4)
             
-            # 6. Actualizar historial
-            self.historial.append(metadata)
+            self.ultimo_modelo = modelo
+            self.logger.info(f"Modelo guardado: {nombre_modelo}")
             
-            return ruta_base
+            return ruta_modelo
             
         except Exception as e:
             self.logger.error(f"Error guardando modelo: {str(e)}")
-            return None
+            raise
 
-    def cargar_modelo(self, ruta):
-        """Carga un modelo guardado"""
-        try:
-            return h2o.load_model(ruta)
-        except Exception as e:
-            print(f"Error cargando modelo: {str(e)}")
-            return None
-
-    def registrar_modelo(self, modelo, tipo_modelo, nombre=None):
-        """Registra un modelo para uso activo"""
-        if nombre is None:
-            nombre = f"{tipo_modelo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    def obtener_prediccion(self, prediccion_id):
+        """
+        Obtiene una predicción específica.
+        
+        Args:
+            prediccion_id: ID único de la predicción
             
-        self.modelos_activos[nombre] = modelo
-        return nombre
+        Returns:
+            Dict con datos de la predicción o None si no existe
+        """
+        try:
+            ruta_prediccion = os.path.join(
+                self.ruta_predicciones,
+                f"prediccion_{prediccion_id}.json"
+            )
+            
+            if os.path.exists(ruta_prediccion):
+                with open(ruta_prediccion, 'r') as f:
+                    return json.load(f)
+            
+            return self.predicciones.get(prediccion_id)
+            
+        except Exception as e:
+            self.logger.error(f"Error obteniendo predicción: {str(e)}")
+            return None
 
-    def analizar_modelo(self, modelo, datos, predicciones, tipo_modelo='automl'):
-        """Analiza un modelo específico"""
-        return analizar_resultados(modelo, datos, predicciones, tipo_modelo)
+    def obtener_ultimo_modelo(self):
+        """
+        Obtiene el último modelo entrenado.
+        
+        Returns:
+            Modelo H2O o None si no hay modelo
+        """
+        try:
+            if self.ultimo_modelo:
+                return self.ultimo_modelo
+                
+            # Buscar último modelo guardado
+            archivos = os.listdir(self.ruta_modelos)
+            modelos = [f for f in archivos if f.endswith('.model')]
+            
+            if not modelos:
+                return None
+                
+            ultimo_modelo = sorted(modelos)[-1]
+            return h2o.load_model(os.path.join(self.ruta_modelos, ultimo_modelo))
+            
+        except Exception as e:
+            self.logger.error(f"Error obteniendo último modelo: {str(e)}")
+            return None
 
-    def comparar_modelos_activos(self):
-        """Compara todos los modelos activos"""
-        return comparar_modelos(self.modelos_activos)
-
-    def limpiar_modelos_antiguos(self, dias=30):
-        """Limpia modelos más antiguos que el número de días especificado"""
-        # Implementar limpieza de modelos antiguos
-        pass 
+    def guardar_prediccion(self, prediccion_id, datos, resultado):
+        """
+        Guarda los resultados de una predicción.
+        
+        Args:
+            prediccion_id: ID único
+            datos: Datos usados
+            resultado: Resultado de la predicción
+        """
+        try:
+            prediccion = {
+                'id': prediccion_id,
+                'fecha': datetime.now().isoformat(),
+                'datos': datos.to_dict() if isinstance(datos, pd.DataFrame) else datos,
+                'resultado': resultado
+            }
+            
+            ruta = os.path.join(
+                self.ruta_predicciones,
+                f"prediccion_{prediccion_id}.json"
+            )
+            
+            with open(ruta, 'w') as f:
+                json.dump(prediccion, f, indent=4)
+                
+            self.predicciones[prediccion_id] = prediccion
+            self.logger.info(f"Predicción guardada: {prediccion_id}")
+            
+        except Exception as e:
+            self.logger.error(f"Error guardando predicción: {str(e)}")
+            raise 

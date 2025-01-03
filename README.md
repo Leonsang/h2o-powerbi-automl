@@ -1,18 +1,52 @@
 # 🚀 H2O AutoML para Power BI
 
-> Integración potente y simple de H2O AutoML con Power BI para análisis predictivo automatizado.
+> Democratizando el Machine Learning para impulsar la toma de decisiones basada en datos.
 
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![H2O Version](https://img.shields.io/badge/h2o-3.40+-blue.svg)](https://h2o.ai/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## 🌟 Propósito
+
+Este proyecto nace de la necesidad de democratizar el análisis avanzado de datos:
+
+- 🎯 **Decisiones Informadas**: De datos a acciones concretas
+- 👥 **ML para Todos**: Accesible a usuarios de negocio
+- 📊 **Cultura Data-Driven**: Fomentar decisiones basadas en datos
+
 ## 🌟 Características
 
-- 🤖 **AutoML Avanzado**: Utiliza H2O.ai para selección y optimización automática de modelos
-- 📊 **Integración Power BI**: Conexión directa con Power BI para análisis en tiempo real
-- 📈 **Análisis Automático**: Métricas, visualizaciones y reportes automáticos
-- 🔄 **Gestión de Modelos**: Versionado, seguimiento y despliegue de modelos
-- 📋 **Documentación Completa**: Guías detalladas y ejemplos prácticos
+- 🤖 **AutoML Explicable**: 
+  - Modelos transparentes y comprensibles
+  - Explicaciones de predicciones
+  - Importancia de variables
+
+- 📊 **Visualización Intuitiva**: 
+  - Gráficos interactivos
+  - Dashboards autoexplicativos
+  - Métricas de negocio
+
+- 📈 **Análisis Profundo**: 
+  - Patrones ocultos
+  - Relaciones entre variables
+  - Tendencias y estacionalidades
+
+## 🎯 Casos de Uso
+
+1. **Predicción de Demanda**
+   - *¿Por qué?* Optimizar inventario y recursos
+   - *Datos:* Históricos de ventas, eventos, temporadas
+   - *Resultado:* Planificación eficiente
+
+2. **Retención de Clientes**
+   - *¿Por qué?* Reducir la pérdida de clientes
+   - *Datos:* Comportamiento, satisfacción, interacciones
+   - *Resultado:* Acciones preventivas personalizadas
+
+3. **Optimización de Precios**
+   - *¿Por qué?* Maximizar ingresos
+   - *Datos:* Históricos de ventas, competencia, costos
+   - *Resultado:* Estrategias de precio dinámicas
 
 ## 🛠️ Instalación Rápida
 
