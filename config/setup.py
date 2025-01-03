@@ -64,9 +64,9 @@ setup(
     
     # URLs del proyecto
     project_urls={
-        'Source': 'https://github.com/tu_usuario/h2o_powerbi',
-        'Documentation': 'https://github.com/tu_usuario/h2o_powerbi/docs',
-        'Bug Reports': 'https://github.com/tu_usuario/h2o_powerbi/issues'
+        'Source': 'https://github.com/Leonsang/h2o-powerbi-automl',
+        'Documentation': 'https://github.com/Leonsang/h2o-powerbi-automl/docs',
+        'Bug Reports': 'https://github.com/Leonsang/h2o-powerbi-automl/issues'
     },
     
     # Dependencias extras para desarrollo

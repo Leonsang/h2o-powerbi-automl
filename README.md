@@ -14,7 +14,7 @@ Integración potente y simple de H2O AutoML con Power BI para análisis predicti
 
 ### Windows
 ```bash
-git clone https://github.com/tu_usuario/h2o-powerbi-automl.git
+git clone https://github.com/Leonsang/h2o-powerbi-automl.git
 cd h2o-powerbi-automl
 install.bat
 ```
@@ -43,4 +43,4 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 - **Autor**: Erick Sang
 - **Email**: ericksang@gmail.com
-- **GitHub**: [@ericksang](https://github.com/ericksang)
+- **GitHub**: [@Leonsang](https://github.com/Leonsang)

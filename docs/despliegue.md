@@ -11,8 +11,8 @@ java -version    # Java 8+
 
 ### 1.2 Clonar Repositorio
 ```bash
-git clone https://github.com/ericksang/h2o-powerbi-automl.git
-cd h2o_powerbi
+git clone https://github.com/Leonsang/h2o-powerbi-automl.git
+cd h2o-powerbi-automl
 ```
 
 ## 2. Instalación
