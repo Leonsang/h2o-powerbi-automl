@@ -28,51 +28,26 @@ class ModeloManager:
         os.makedirs(self.ruta_modelos, exist_ok=True)
         os.makedirs(self.ruta_predicciones, exist_ok=True)
 
-    def guardar_modelo(self, modelo, tipo_modelo, metricas=None):
-        """
-        Guarda el modelo con su metadata asociada.
-        
-        Args:
-            modelo: Modelo H2O entrenado
-            tipo_modelo: Tipo de modelo (ej: 'automl', 'gbm')
-            metricas: Dict con métricas del modelo
-        """
+    def guardar_modelo(self, modelo, nombre, metricas):
+        """Guarda el modelo con un nombre descriptivo"""
         try:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_modelo = f"{tipo_modelo}_{timestamp}"
+            # Crear directorio si no existe
+            if not os.path.exists(self.directorio_modelos):
+                os.makedirs(self.directorio_modelos)
             
-            # 1. Guardar modelo H2O
-            ruta_modelo = h2o.save_model(
-                model=modelo,
-                path=self.ruta_modelos,
-                force=True
-            )
+            # Guardar modelo
+            ruta_modelo = os.path.join(self.directorio_modelos, f"{nombre}.zip")
+            h2o.save_model(modelo, ruta_modelo)
             
-            # 2. Guardar metadata
-            metadata = {
-                'nombre': nombre_modelo,
-                'tipo': tipo_modelo,
-                'fecha': timestamp,
-                'ruta': ruta_modelo,
-                'metricas': metricas or {},
-                'parametros': modelo.get_params()
-            }
-            
-            ruta_metadata = os.path.join(
-                self.ruta_modelos,
-                f"{nombre_modelo}_metadata.json"
-            )
-            
-            with open(ruta_metadata, 'w') as f:
-                json.dump(metadata, f, indent=4)
-            
-            self.ultimo_modelo = modelo
-            self.logger.info(f"Modelo guardado: {nombre_modelo}")
-            
-            return ruta_modelo
+            # Guardar métricas
+            ruta_metricas = os.path.join(self.directorio_modelos, f"{nombre}_metricas.json")
+            with open(ruta_metricas, 'w') as f:
+                json.dump(metricas, f)
+                
+            self.logger.info(f"Modelo guardado: {nombre}")
             
         except Exception as e:
-            self.logger.error(f"Error guardando modelo: {str(e)}")
+            self.logger.error(f"Error al guardar modelo: {str(e)}")
             raise
 
     def obtener_prediccion(self, prediccion_id):

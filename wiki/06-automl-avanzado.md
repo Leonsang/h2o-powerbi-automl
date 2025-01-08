@@ -1,111 +1,226 @@
-# 🤖 AutoML Avanzado
+# AutoML Avanzado
 
-## ⚙️ Configuración Avanzada
+## Visión General
+Este módulo proporciona funcionalidades avanzadas de AutoML con optimización automática e interpretabilidad integrada.
 
-### Parámetros Principales
+## Configuración Avanzada
+
+### 1. Configuración de H2O
 ```python
-configuracion = {
-    'max_models': 20,          # Número máximo de modelos
-    'max_runtime_secs': 300,   # Tiempo máximo de entrenamiento
-    'seed': 1,                 # Semilla para reproducibilidad
-    'nfolds': 5,              # Folds para validación cruzada
-    'balance_classes': True,   # Balanceo de clases
-    'include_algos': [         # Algoritmos a incluir
-        'DRF', 'GLM', 'XGBoost', 'GBM', 'DeepLearning'
-    ]
+from src.IntegradorH2O_PBI import H2OModeloAvanzado
+
+# Configuración personalizada
+config = {
+    'max_models': 20,              # Número máximo de modelos
+    'max_runtime_secs': 3600,      # Tiempo máximo de entrenamiento
+    'stopping_rounds': 10,         # Early stopping
+    'stopping_tolerance': 0.001,   # Tolerancia para early stopping
+    'balance_classes': True,       # Balanceo de clases
+    'seed': 42                     # Semilla para reproducibilidad
 }
+
+# Inicializar modelo
+modelo = H2OModeloAvanzado(config=config)
 ```
 
-### Configuración por Algoritmo
+### 2. Pipeline Automático
 ```python
-config_especifica = {
-    'GBM': {
-        'ntrees': 100,
-        'max_depth': 5,
-        'learn_rate': 0.1
+# Configurar pipeline completo
+pipeline_config = {
+    'preprocesamiento': {
+        'imputacion': 'auto',
+        'encoding': 'auto',
+        'scaling': True,
+        'feature_selection': True
     },
-    'XGBoost': {
-        'ntrees': 100,
-        'max_depth': 6,
-        'learning_rate': 0.1
+    'modelado': {
+        'algoritmos': ['GBM', 'RF', 'XGBoost', 'DeepLearning'],
+        'validacion_cruzada': True,
+        'n_folds': 5
+    },
+    'optimizacion': {
+        'hyperopt': True,
+        'n_trials': 100,
+        'metric': 'auto'
     }
 }
+
+resultado = modelo.entrenar_avanzado(
+    datos=datos,
+    objetivo='target',
+    config=pipeline_config
+)
 ```
 
-## 🎯 Optimización de Hiperparámetros
+## Optimización Automática
 
-### Grid Search
+### 1. Selección de Features
 ```python
-# Definir grid
-param_grid = {
-    'ntrees': [50, 100, 200],
-    'max_depth': [3, 5, 7],
-    'learn_rate': [0.01, 0.1]
-}
+from src.feature_selection import SelectorFeatures
 
-# Ejecutar búsqueda
-mejor_modelo = modelo.grid_search(param_grid)
+# Selección automática
+selector = SelectorFeatures()
+features_importantes = selector.seleccionar_features(
+    datos=datos,
+    objetivo='target',
+    metodo='auto'
+)
+
+print("\nFeatures seleccionadas:")
+print(features_importantes)
 ```
 
-### Random Search
+### 2. Optimización de Hiperparámetros
 ```python
-# Configurar búsqueda aleatoria
-random_params = {
-    'ntrees': (50, 200),
-    'max_depth': (3, 10),
-    'learn_rate': (0.01, 0.1)
-}
+from src.optimizacion import OptimizadorHiperparametros
 
-# Ejecutar búsqueda
-mejor_modelo = modelo.random_search(random_params)
+# Optimización bayesiana
+optimizador = OptimizadorHiperparametros()
+mejores_params = optimizador.optimizar(
+    modelo=resultado['modelo'],
+    datos=datos,
+    objetivo='target',
+    n_trials=100
+)
+
+print("\nMejores hiperparámetros:")
+print(mejores_params)
 ```
 
-## 🔄 Selección de Modelos
+## Ensamble y Stacking
 
-### Leaderboard
+### 1. Ensamble Automático
 ```python
-# Ver ranking de modelos
-leaderboard = modelo.get_leaderboard()
-print(leaderboard.head())
+from src.ensamble import EnsambleManager
+
+# Crear ensamble
+ensamble = EnsambleManager()
+modelo_ensamble = ensamble.crear_ensamble(
+    modelos=resultado['modelos'],
+    metodo='weighted',
+    weights='auto'
+)
+
+# Evaluar ensamble
+metricas_ensamble = ensamble.evaluar(datos_test)
+print("\nMétricas del ensamble:")
+print(metricas_ensamble)
 ```
 
-### Stacked Ensembles
+### 2. Stacking Avanzado
 ```python
-# Configurar ensemble
-ensemble_config = {
+# Configurar stacking
+stacking_config = {
     'base_models': ['GBM', 'RF', 'XGBoost'],
-    'metalearner': 'GLM'
+    'meta_model': 'GLM',
+    'folds': 5,
+    'use_predictions': True
 }
 
-# Crear ensemble
-modelo_ensemble = modelo.crear_ensemble(**ensemble_config)
+modelo_stacking = ensamble.crear_stacking(
+    config=stacking_config,
+    datos=datos
+)
 ```
 
-## 📊 Ensambles
+## Validación Avanzada
 
-### Tipos de Ensambles
-1. **Stacked Ensemble**
-   - Mejor de familia
-   - Todos los modelos
-   - Mejores N modelos
-
-2. **Super Learner**
-   - Cross-validación
-   - Metalearner
-   - Pesos optimizados
-
-### Ejemplo de Implementación
+### 1. Validación Cruzada Estratificada
 ```python
-# Crear super learner
-super_learner = modelo.crear_super_learner(
-    base_models=['GBM', 'RF', 'DL'],
-    metalearner='GLM',
-    folds=5
+from src.validacion import ValidadorAvanzado
+
+validador = ValidadorAvanzado()
+resultados_cv = validador.validacion_cruzada(
+    modelo=resultado['modelo'],
+    datos=datos,
+    objetivo='target',
+    n_folds=5,
+    stratify=True
 )
 
-# Entrenar
-resultado = super_learner.train(
-    training_frame=datos_train,
-    validation_frame=datos_valid
+print("\nResultados validación cruzada:")
+print(resultados_cv)
+```
+
+### 2. Validación Temporal
+```python
+# Validación con series temporales
+resultados_temporales = validador.validacion_temporal(
+    modelo=resultado['modelo'],
+    datos=datos,
+    fecha='fecha',
+    ventana_tiempo='1M',
+    n_splits=3
 )
-``` 
+```
+
+## Monitoreo y Mantenimiento
+
+### 1. Monitoreo de Drift
+```python
+from src.monitoreo import MonitorDrift
+
+monitor = MonitorDrift()
+drift_report = monitor.detectar_drift(
+    modelo=resultado['modelo'],
+    datos_nuevos=datos_nuevos,
+    umbral=0.05
+)
+
+print("\nReporte de drift:")
+print(drift_report)
+```
+
+### 2. Reentrenamiento Automático
+```python
+from src.mantenimiento import MantenimientoModelo
+
+mantenimiento = MantenimientoModelo()
+necesita_reentrenar = mantenimiento.evaluar_reentrenamiento(
+    modelo=resultado['modelo'],
+    datos_nuevos=datos_nuevos,
+    metricas_objetivo=metricas_objetivo
+)
+
+if necesita_reentrenar:
+    nuevo_modelo = mantenimiento.reentrenar(
+        modelo_base=resultado['modelo'],
+        datos_nuevos=datos_nuevos
+    )
+```
+
+## Mejores Prácticas
+
+1. **Optimización**
+   - Usar validación cruzada
+   - Balancear tiempo/rendimiento
+   - Monitorear recursos
+
+2. **Validación**
+   - Validar en múltiples escenarios
+   - Usar datos representativos
+   - Documentar resultados
+
+3. **Mantenimiento**
+   - Monitorear drift regularmente
+   - Planificar reentrenamientos
+   - Mantener versiones
+
+## Siguientes Pasos
+1. [Power BI](07-powerbi.md)
+2. [Explicabilidad](08-explicabilidad.md)
+3. [Mantenimiento](09-mantenimiento.md)
+
+## Compatibilidad
+
+### Versiones Soportadas
+- H2O: 3.46.0.1
+- Python: 3.9-3.11
+- Pandas: 2.0.3
+- NumPy: 1.24.3
+- Scikit-learn: 1.3.0
+
+### Limitaciones Conocidas
+- No compatible con Python 3.12+
+- Requiere Java 8+
+- RAM mínima: 16GB 

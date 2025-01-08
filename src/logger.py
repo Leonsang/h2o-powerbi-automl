@@ -3,52 +3,46 @@ import os
 from datetime import datetime
 
 class Logger:
-    def __init__(self, nombre='h2o_pbi'):
-        """Inicializa el sistema de logs"""
+    def __init__(self, nombre):
+        # Crear directorio de logs
+        self.log_dir = "logs"
+        os.makedirs(self.log_dir, exist_ok=True)
+        
+        # Configurar logger
         self.logger = logging.getLogger(nombre)
         self.logger.setLevel(logging.INFO)
         
-        # Determinar subdirectorio según el tipo de logger
-        if 'test' in nombre:
-            subdir = 'logs/tests'
-        elif 'h2o' in nombre:
-            subdir = 'logs/h2o'
-        elif 'modelo' in nombre:
-            subdir = 'logs/modelos'
-        else:
-            subdir = 'logs'
-        
-        # Crear directorio si no existe
-        os.makedirs(subdir, exist_ok=True)
-        
         # Handler para archivo
-        log_file = f"{subdir}/{nombre}_{datetime.now().strftime('%Y%m%d')}.log"
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.INFO)
+        fecha = datetime.now().strftime("%Y%m%d_%H%M")
+        fh = logging.FileHandler(
+            os.path.join(self.log_dir, f"{nombre}_{fecha}.log")
+        )
+        fh.setLevel(logging.INFO)
         
         # Handler para consola
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.WARNING)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
         
         # Formato
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            '%(asctime)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
         )
-        file_handler.setFormatter(formatter)
-        console_handler.setFormatter(formatter)
+        fh.setFormatter(formatter)
+        ch.setFormatter(formatter)
         
         # Agregar handlers
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(console_handler)
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
     
-    def info(self, mensaje):
-        self.logger.info(mensaje)
-    
-    def warning(self, mensaje):
-        self.logger.warning(mensaje)
-    
-    def error(self, mensaje):
-        self.logger.error(mensaje)
-    
-    def debug(self, mensaje):
-        self.logger.debug(mensaje) 
+    def info(self, msg):
+        self.logger.info(msg)
+        
+    def error(self, msg):
+        self.logger.error(msg)
+        
+    def warning(self, msg):
+        self.logger.warning(msg)
+        
+    def debug(self, msg):
+        self.logger.debug(msg) 

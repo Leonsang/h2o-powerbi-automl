@@ -1,91 +1,156 @@
-# 📊 Análisis y Métricas
+# Análisis y Diagnóstico
 
-## 📈 Métricas Disponibles
+## Visión General
+Este módulo proporciona análisis profundo y diagnóstico de modelos usando interpretabilidad asistida por IA.
 
-### Métricas de Regresión
+## Componentes de Análisis
+
+### 1. Análisis Global
 ```python
-metricas = {
-    'r2': 'Coeficiente de determinación',
-    'rmse': 'Error cuadrático medio',
-    'mae': 'Error absoluto medio',
-    'mape': 'Error porcentual absoluto medio'
-}
+from src.analisis_modelo import AnalizadorModelo
+from src.asistente_ia import AsistenteDataScience
+
+# Inicializar componentes
+analizador = AnalizadorModelo(output_dir='resultados/')
+asistente = AsistenteDataScience()
+
+# Generar análisis completo
+analisis = analizador.analisis_completo(
+    modelo=resultado['modelo'],
+    datos=datos,
+    predicciones=resultado['predicciones'],
+    objetivo='target',
+    tipo_modelo='regresion'
+)
 ```
 
-### Métricas de Clasificación
+### 2. Métricas y Diagnósticos
 ```python
-metricas = {
-    'accuracy': 'Precisión general',
-    'precision': 'Precisión positiva',
-    'recall': 'Sensibilidad',
-    'f1': 'Media armónica P/R',
-    'auc': 'Área bajo la curva ROC'
-}
-```
+from src.metricas import Metricas
 
-## 🔍 Interpretación de Resultados
-
-### Análisis de Predicciones
-```python
-from src.analizar_resultados import analizar_resultados
-
-# Análisis completo
-analisis = analizar_resultados(
-    modelo=modelo,
-    datos=datos_test,
-    predicciones=predicciones
+# Calcular métricas
+metricas = Metricas()
+diagnostico = metricas.calcular_metricas_globales(
+    reales=datos['target'],
+    predicciones=resultado['predicciones'],
+    tipo_modelo='regresion'
 )
 
-# Interpretación
-print(analisis['interpretacion'])
+print("\nMétricas principales:")
+for metrica, valor in diagnostico.items():
+    print(f"- {metrica}: {valor}")
 ```
 
-### Importancia de Variables
+### 3. Visualizaciones Avanzadas
 ```python
-# Top variables
-importancia = modelo.obtener_importancia_variables()
-print(importancia.head())
+from src.visualizaciones import Visualizador
+
+viz = Visualizador()
+
+# Gráficos de diagnóstico
+viz.plot_predicciones_vs_reales(reales, predicciones)
+viz.plot_distribucion_errores(reales, predicciones)
+viz.plot_shap_summary(analisis['shap_values'])
+viz.plot_importancia_variables(analisis['importancia_variables'])
 ```
 
-## 📊 Visualizaciones
+## Interpretabilidad IA
 
-### Gráficos Básicos
+### 1. Análisis Automático
 ```python
-# Predicciones vs Reales
-modelo.plot_predicciones()
+# Generar interpretación
+interpretacion = asistente.interpretar_resultados({
+    'metricas': diagnostico,
+    'importancia_variables': analisis['importancia_variables'],
+    'insights': analisis['insights']
+})
 
-# Residuos
-modelo.plot_residuos()
-
-# Importancia de Variables
-modelo.plot_importancia_variables()
+print("\nInterpretación IA:")
+print(interpretacion)
 ```
 
-### Gráficos Avanzados
+### 2. Explicaciones Locales
 ```python
-# Análisis de Componentes
-modelo.plot_pca()
-
-# Matriz de Correlación
-modelo.plot_correlacion()
-
-# SHAP Values
-modelo.plot_shap_values()
+# Explicar predicciones específicas
+for caso in analisis['casos_especiales']:
+    explicacion = asistente.explicar_predicciones(
+        caso=caso['id'],
+        explicacion_lime=caso['lime'],
+        counterfactual=caso['counterfactual']
+    )
+    print(f"\nCaso {caso['id']}:")
+    print(explicacion)
 ```
 
-## 💡 Mejores Prácticas
+### 3. Recomendaciones Técnicas
+```python
+# Obtener recomendaciones
+recomendaciones = asistente.generar_recomendaciones_tecnicas({
+    'metricas': diagnostico,
+    'shap_values': analisis['shap_values']
+})
 
-### 1. Validación de Modelos
-- Usar validación cruzada
-- Separar datos de test
-- Validar en diferentes períodos
+print("\nRecomendaciones técnicas:")
+print(recomendaciones)
+```
 
-### 2. Interpretación
-- Revisar todas las métricas
-- Analizar casos extremos
-- Validar con expertos
+## Exportación de Resultados
 
-### 3. Monitoreo
-- Seguimiento de drift
-- Alertas de degradación
-- Actualización periódica 
+### 1. Guardar Análisis
+```python
+from src.exportador import Exportador
+
+exportador = Exportador(output_dir='resultados/')
+exportador.guardar_analisis_completo(
+    analisis=analisis,
+    interpretacion=interpretacion,
+    recomendaciones=recomendaciones
+)
+```
+
+### 2. Generar Reporte
+```python
+# Generar reporte HTML
+exportador.generar_reporte_html(
+    titulo="Análisis Completo del Modelo",
+    descripcion="Análisis detallado con interpretabilidad IA"
+)
+
+# Exportar para Power BI
+exportador.exportar_powerbi(
+    analisis=analisis,
+    formato='pbix'
+)
+```
+
+## Mejores Prácticas
+
+1. **Análisis Sistemático**
+   - Seguir protocolo de análisis
+   - Documentar hallazgos
+   - Validar interpretaciones
+
+2. **Visualización**
+   - Usar gráficos apropiados
+   - Mantener consistencia
+   - Facilitar comparaciones
+
+3. **Interpretación**
+   - Contrastar con expertos
+   - Validar insights
+   - Documentar decisiones
+
+## Siguientes Pasos
+1. [AutoML Avanzado](06-automl-avanzado.md)
+2. [Power BI](07-powerbi.md)
+3. [Explicabilidad](08-explicabilidad.md)
+
+### Interpretabilidad
+- SHAP (v0.41.0)
+- LIME (v0.2.0.1)
+- DiCE (v0.9)
+
+### Visualización
+- Matplotlib (v3.7.2)
+- Seaborn (v0.12.2)
+- Plotly (v5.18.0) 

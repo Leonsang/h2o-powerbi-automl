@@ -1,69 +1,158 @@
 import pandas as pd
 import numpy as np
-from .logger import Logger
+from sklearn.metrics import (
+    r2_score, mean_squared_error, mean_absolute_error,
+    accuracy_score, precision_score, recall_score, f1_score,
+    confusion_matrix
+)
 
-def analizar_resultados(modelo, datos, predicciones, tipo_modelo='automl'):
+def analizar_resultados(datos, predicciones, objetivo, tipo_modelo):
     """
-    Analiza resultados del modelo y genera métricas e insights.
+    Análisis completo de resultados del modelo
     
     Args:
-        modelo: Modelo H2O entrenado
         datos: DataFrame original
-        predicciones: Predicciones del modelo
-        tipo_modelo: Tipo de modelo usado
+        predicciones: Series con predicciones
+        objetivo: Nombre de columna objetivo
+        tipo_modelo: 'clasificacion' o 'regresion'
         
     Returns:
-        Dict con análisis completo
+        dict con análisis completo
     """
-    logger = Logger('analisis_resultados')
+    resultados = {}
     
+    # 1. Métricas básicas según tipo de modelo
+    resultados['metricas'] = calcular_metricas(
+        datos[objetivo], 
+        predicciones, 
+        tipo_modelo
+    )
+    
+    # 2. Análisis de variables importantes
+    resultados['importancia_variables'] = analizar_importancia_variables(
+        datos, 
+        objetivo
+    )
+    
+    # 3. Análisis de errores
+    resultados['analisis_errores'] = analizar_errores(
+        datos[objetivo], 
+        predicciones
+    )
+    
+    # 4. Análisis de segmentos
+    resultados['analisis_segmentos'] = analizar_por_segmentos(
+        datos, 
+        predicciones, 
+        objetivo
+    )
+    
+    # 5. Tendencias y patrones
+    resultados['tendencias'] = analizar_tendencias(
+        datos, 
+        predicciones, 
+        objetivo
+    )
+    
+    return resultados
+
+def calcular_metricas(reales, predicciones, tipo_modelo):
+    """Calcula métricas según tipo de modelo"""
+    if tipo_modelo == 'regresion':
+        return {
+            'r2': r2_score(reales, predicciones),
+            'rmse': np.sqrt(mean_squared_error(reales, predicciones)),
+            'mae': mean_absolute_error(reales, predicciones),
+            'mape': np.mean(np.abs((reales - predicciones) / reales)) * 100
+        }
+    else:
+        return {
+            'accuracy': accuracy_score(reales, predicciones),
+            'precision': precision_score(reales, predicciones, average='weighted'),
+            'recall': recall_score(reales, predicciones, average='weighted'),
+            'f1': f1_score(reales, predicciones, average='weighted'),
+            'matriz_confusion': confusion_matrix(reales, predicciones).tolist()
+        }
+
+def analizar_importancia_variables(datos, objetivo):
+    """Analiza importancia de variables mediante correlaciones"""
+    correlaciones = datos.corr()[objetivo].sort_values(ascending=False)
+    return pd.DataFrame({
+        'variable': correlaciones.index,
+        'importancia': correlaciones.values
+    })
+
+def analizar_errores(reales, predicciones):
+    """Análisis detallado de errores"""
+    errores = reales - predicciones
+    return {
+        'distribucion': {
+            'mean': errores.mean(),
+            'std': errores.std(),
+            'skew': errores.skew(),
+            'kurtosis': errores.kurtosis()
+        },
+        'percentiles': {
+            '25': np.percentile(errores, 25),
+            '50': np.percentile(errores, 50),
+            '75': np.percentile(errores, 75)
+        }
+    }
+
+def analizar_por_segmentos(datos, predicciones, objetivo):
+    """Análisis por segmentos de datos"""
+    segmentos = {}
+    
+    # Análisis por cuartiles del objetivo
+    cuartiles = pd.qcut(datos[objetivo], q=4)
+    for nombre, grupo in datos.groupby(cuartiles):
+        idx = grupo.index
+        segmentos[f'cuartil_{nombre}'] = {
+            'rmse': np.sqrt(mean_squared_error(
+                datos.loc[idx, objetivo], 
+                predicciones[idx]
+            )),
+            'size': len(grupo)
+        }
+    
+    return segmentos
+
+def analizar_tendencias(datos, predicciones, objetivo):
+    """Análisis de tendencias y patrones"""
+    return {
+        'tendencia_general': np.polyfit(
+            range(len(datos)), 
+            datos[objetivo], 
+            deg=1
+        ).tolist(),
+        'estacionalidad': detectar_estacionalidad(datos[objetivo]),
+        'outliers': detectar_outliers(datos[objetivo])
+    }
+
+def detectar_estacionalidad(serie):
+    """Detecta patrones estacionales"""
+    from statsmodels.tsa.seasonal import seasonal_decompose
     try:
-        # 1. Métricas básicas
-        metricas_basicas = {
-            'r2': modelo.r2(),
-            'rmse': modelo.rmse(),
-            'mae': modelo.mae()
+        descomposicion = seasonal_decompose(
+            serie, 
+            period=min(len(serie)//2, 12)
+        )
+        return {
+            'seasonal': descomposicion.seasonal.tolist(),
+            'trend': descomposicion.trend.tolist(),
+            'resid': descomposicion.resid.tolist()
         }
-        
-        # 2. Análisis de residuos
-        residuos = None
-        if hasattr(predicciones, 'values'):
-            residuos = datos.values - predicciones.values
-        
-        # 3. Importancia de variables
-        importancia = None
-        if hasattr(modelo, 'varimp'):
-            importancia = modelo.varimp(use_pandas=True)
-        
-        # 4. Estadísticas de predicciones
-        stats_predicciones = {
-            'min': float(np.min(predicciones)),
-            'max': float(np.max(predicciones)),
-            'mean': float(np.mean(predicciones)),
-            'std': float(np.std(predicciones))
-        }
-        
-        # 5. Generar reporte
-        reporte = {
-            'metricas_basicas': metricas_basicas,
-            'estadisticas_predicciones': stats_predicciones,
-            'tipo_modelo': tipo_modelo,
-            'num_registros': len(datos),
-            'timestamp': pd.Timestamp.now().isoformat()
-        }
-        
-        if residuos is not None:
-            reporte['analisis_residuos'] = {
-                'mean': float(np.mean(residuos)),
-                'std': float(np.std(residuos))
-            }
-            
-        if importancia is not None:
-            reporte['importancia_variables'] = importancia.to_dict()
-            
-        logger.info("Análisis de resultados completado")
-        return reporte
-        
-    except Exception as e:
-        logger.error(f"Error en análisis de resultados: {str(e)}")
-        raise 
+    except:
+        return None
+
+def detectar_outliers(serie):
+    """Detecta valores atípicos usando IQR"""
+    Q1 = serie.quantile(0.25)
+    Q3 = serie.quantile(0.75)
+    IQR = Q3 - Q1
+    outliers = ((serie < (Q1 - 1.5 * IQR)) | 
+                (serie > (Q3 + 1.5 * IQR)))
+    return {
+        'indices': outliers[outliers].index.tolist(),
+        'valores': serie[outliers].tolist()
+    } 

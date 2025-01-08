@@ -1,160 +1,123 @@
-# 🚀 Guía de Despliegue H2O AutoML para Power BI
+# Guía de Despliegue
 
-## 1. Preparación del Entorno
+## Requisitos del Sistema
+- Python 3.8+
+- H2O 3.46.0+
+- Memoria RAM: 16GB recomendado
+- CPU: 4+ cores
+- Espacio en disco: 10GB mínimo
+- GPU: Opcional, mejora rendimiento
 
-### 1.1 Requisitos Previos
+## Instalación
+
+1. **Entorno Virtual**
 ```bash
-# Verificar versiones
-python --version  # Python 3.8+
-java -version    # Java 8+
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate     # Windows
 ```
 
-### 1.2 Clonar Repositorio
+2. **Dependencias**
 ```bash
-git clone https://github.com/Leonsang/h2o-powerbi-automl.git
-cd h2o-powerbi-automl
+pip install -r requirements.txt
 ```
 
-## 2. Instalación
+3. **Configuración**
+- Copiar `.env.example` a `.env`
+- Ajustar variables de entorno:
+  * H2O_CONFIG
+  * MODELO_IA
+  * PATHS_CONFIG
 
-### 2.1 Windows
-```bash
-# Ejecutar instalador
-install.bat
-```
+## Componentes IA
 
-### 2.2 Linux/Mac
-```bash
-# Dar permisos y ejecutar
-chmod +x install.sh
-./install.sh
-```
+1. **Modelos de Interpretabilidad**
+- Los modelos se descargan automáticamente
+- Verificación de integridad automática
+- Caché inteligente de modelos
 
-## 3. Verificación de Instalación
-
-### 3.1 Estructura de Directorios
-```bash
-# Verificar directorios creados
-tree
-```
-
-Deberías ver:
-```
-proyecto/
-├── modelos/
-├── logs/
-│   ├── h2o/
-│   ├── modelos/
-│   └── tests/
-├── config/
-├── src/
-├── tests/
-├── docs/
-├── datos/
-└── temp/
-    └── h2o_temp/
-```
-
-### 3.2 Tests
-```bash
-# Ejecutar suite completa de tests
-python -m tests.test_suite
-```
-
-### 3.3 Verificar Logs
-```bash
-# Verificar creación de logs
-ls logs/h2o/
-ls logs/modelos/
-ls logs/tests/
-```
-
-## 4. Configuración Power BI
-
-### 4.1 Configurar Python en Power BI
-1. Abrir Power BI Desktop
-2. Ir a Archivo > Opciones > Python Scripting
-3. Configurar ruta del entorno virtual:
-   ```
-   C:/ruta/al/proyecto/h2o_powerbi/.venv/Scripts/python.exe
-   ```
-
-### 4.2 Probar Integración
-1. Ir a "Obtener datos" → "Script de Python"
-2. Pegar script de prueba:
+2. **Configuración de IA**
 ```python
-from powerbi_script import main
-resultado = main(dataset)
+from src.asistente_ia import AsistenteDataScience
+asistente = AsistenteDataScience(modelo_base='orca-mini')
 ```
 
-## 5. Validación Final
+## Integración con Power BI
 
-### 5.1 Verificar Servidor H2O
-```python
-from src.init_h2o_server import verificar_h2o
-verificar_h2o()  # Debe retornar True
-```
+1. **Configuración Python**
+- Verificar ruta Python en Power BI
+- Instalar dependencias globalmente
+- Configurar memoria y timeout
 
-### 5.2 Probar Modelo
-```python
-from src.IntegradorH2O_PBI import H2OModeloAvanzado
-modelo = H2OModeloAvanzado()
-resultado = modelo.entrenar(datos=datos_prueba)
-```
+2. **Script de Conexión**
+- Copiar `powerbi_script.py`
+- Ajustar configuración según necesidades
+- Verificar permisos de escritura
 
-### 5.3 Verificar Logs
+3. **Verificación**
 ```bash
-# Revisar logs de operación
-tail -f logs/h2o/h2o_server_*.log
-tail -f logs/modelos/modelo_manager_*.log
+python -m pytest tests/
 ```
 
-## 6. Mantenimiento
+## Monitoreo
 
-### 6.1 Limpieza Regular
-```bash
-# Limpiar archivos temporales
-python config/limpiar_todo.py
+1. **Logs**
+- Sistema de logging multinivel
+- Rotación automática de logs
+- Monitoreo de recursos
 
-# Rotar logs antiguos (más de 30 días)
-find logs/ -name "*.log" -mtime +30 -delete
-```
+2. **Métricas**
+- Dashboard en tiempo real
+- Alertas configurables
+- Métricas de rendimiento
 
-### 6.2 Backup
-```bash
-# Backup de modelos y configuración
-tar -czf backup_$(date +%Y%m%d).tar.gz modelos/ config/
-```
+3. **Diagnósticos**
+- Verificación de modelos
+- Tests automáticos
+- Validación de resultados
 
-### 6.3 Actualización
+## Mantenimiento
+
+1. **Backups**
+- Modelos: Diario
+- Configuración: Por cambio
+- Logs: Semanal
+- Cache: Mensual
+
+2. **Actualizaciones**
 ```bash
 # Actualizar dependencias
-pip install -r requirements.txt --upgrade
+pip install --upgrade -r requirements.txt
 
-# Ejecutar tests post-actualización
-python -m tests.test_suite
+# Actualizar modelos IA
+python -m src.modelo_manager_ia --update-all
+
+# Verificar sistema
+python -m pytest tests/
 ```
 
-## 7. Troubleshooting
-
-### 7.1 Logs de Error
+3. **Limpieza**
 ```bash
-# Ver errores recientes
-grep ERROR logs/h2o/*.log
-grep ERROR logs/modelos/*.log
+# Limpiar cache
+python scripts/clean_cache.py
+
+# Rotar logs
+python scripts/rotate_logs.py
 ```
 
-### 7.2 Reinicio de Servicios
-```python
-from src.init_h2o_server import detener_servidor, iniciar_servidor_h2o
+## Troubleshooting
 
-# Reiniciar H2O
-detener_servidor()
-iniciar_servidor_h2o()
-```
+1. **Problemas Comunes**
+- Errores de memoria
+- Timeouts en Power BI
+- Fallos de modelo
 
-### 7.3 Limpiar Cache
-```bash
-# Limpiar cache de H2O
-rm -rf temp/h2o_temp/*
-``` 
+2. **Soluciones**
+- Ajustar configuración de memoria
+- Verificar logs específicos
+- Reinstalar componentes
+
+3. **Soporte**
+- Documentación: /docs
+- Logs: /logs
+- Issues: GitHub 
