@@ -4,8 +4,11 @@ import time
 import atexit
 import tempfile
 from pathlib import Path
-from .logger import Logger
-from .verificar_java import verificar_requisitos
+import logging
+
+# Configurar logger básico
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('h2o_server')
 
 # Configuración H2O
 H2O_CONFIG = {
@@ -13,8 +16,6 @@ H2O_CONFIG = {
     'url': 'http://localhost',
     'port': 54321
 }
-
-logger = Logger('h2o_server')
 
 def iniciar_servidor_h2o():
     """Inicia el servidor H2O"""

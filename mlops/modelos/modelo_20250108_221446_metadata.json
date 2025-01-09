@@ -1,0 +1,56 @@
+{
+    "tipo_modelo": "clasificacion",
+    "features": [
+        "encoded_y",
+        "interaccion_PassengerId_Survived",
+        "interaccion_Survived_Pclass",
+        "interaccion_encoded_y_interaccion_PassengerId_Survived",
+        "interaccion_encoded_y_interaccion_Survived_Pclass",
+        "interaccion_encoded_y_Survived",
+        "interaccion_interaccion_PassengerId_Survived_Survived",
+        "interaccion_interaccion_Survived_Pclass_interaccion_Survived_Fare",
+        "interaccion_interaccion_Survived_Pclass_Survived",
+        "interaccion_interaccion_Survived_Age_Survived",
+        "Survived"
+    ],
+    "configuracion_feature_engineering": {
+        "detectar_outliers": true,
+        "crear_interacciones": true,
+        "reducir_dimensionalidad": false,
+        "seleccionar_features": true,
+        "k_mejores_features": 10
+    },
+    "configuracion_modelo": {
+        "max_models": 10,
+        "seed": 42,
+        "max_runtime_secs": 300,
+        "include_algos": [
+            "DRF",
+            "GBM",
+            "XGBoost",
+            "GLM"
+        ],
+        "feature_engineering": {
+            "detectar_outliers": true,
+            "crear_interacciones": true,
+            "reducir_dimensionalidad": false,
+            "seleccionar_features": true,
+            "k_mejores_features": 10
+        },
+        "monitoreo": {
+            "activar_mlops": true,
+            "frecuencia_monitoreo": "1d",
+            "umbral_drift": 0.1
+        },
+        "visualizaciones": {
+            "generar_graficos": true,
+            "guardar_graficos": true
+        },
+        "stopping_metric": "AUC",
+        "sort_metric": "AUC",
+        "nfolds": 5
+    },
+    "id": "modelo_20250108_221446",
+    "fecha_registro": "2025-01-08T22:14:48.754422",
+    "ruta_modelo": "./mlops\\modelos\\modelo_20250108_221446.model"
+}

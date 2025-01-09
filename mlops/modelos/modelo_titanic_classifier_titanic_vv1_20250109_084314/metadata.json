@@ -1,0 +1,72 @@
+{
+    "nombre": "titanic_classifier",
+    "tipo": "clasificacion",
+    "config": {
+        "max_models": 5,
+        "seed": 42,
+        "max_runtime_secs": 30,
+        "include_algos": [
+            "DRF",
+            "GBM",
+            "GLM"
+        ],
+        "nfolds": 5,
+        "keep_cross_validation_predictions": true,
+        "sort_metric": "AUTO"
+    },
+    "esta_entrenado": true,
+    "metricas": {
+        "rmse": 0.37428693020513365,
+        "mse": 0.14009070612238259,
+        "r2": 0.41166559814842696,
+        "auc": 0.8587369420702754,
+        "precision": [
+            [
+                0.9991944146399595,
+                1.0
+            ]
+        ],
+        "recall": [
+            [
+                0.0,
+                1.0
+            ]
+        ],
+        "f1": [
+            [
+                0.2857142857142857,
+                0.7719298245614036
+            ]
+        ],
+        "confusion_matrix": {
+            "": {
+                "0": "0",
+                "1": "1",
+                "2": "Total"
+            },
+            "0": {
+                "0": 63.0,
+                "1": 8.0,
+                "2": 71.0
+            },
+            "1": {
+                "0": 18.0,
+                "1": 44.0,
+                "2": 62.0
+            },
+            "Error": {
+                "0": "0.2222",
+                "1": "0.1538",
+                "2": "0.1955"
+            },
+            "Rate": {
+                "0": " (18.0/81.0)",
+                "1": " (8.0/52.0)",
+                "2": " (26.0/133.0)"
+            }
+        }
+    },
+    "fecha_creacion": "2025-01-09T08:42:41.643164",
+    "fecha_ultimo_entrenamiento": null,
+    "ruta_modelo": "C:\\Users\\PILAR BELLO\\Desktop\\H20Ai\\mlops\\modelos\\modelo_titanic_classifier_titanic_vv1_20250109_084314\\DRF_1_AutoML_1_20250109_84246"
+}

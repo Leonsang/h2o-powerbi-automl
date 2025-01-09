@@ -1,135 +1,169 @@
 # H2O AutoML Integration for Power BI
 
-Este proyecto proporciona una integración avanzada entre H2O AutoML y Power BI, permitiendo el entrenamiento automatizado de modelos de machine learning y su análisis detallado.
+Sistema avanzado de AutoML con H2O.ai integrado con Power BI, que incluye monitoreo, MLOps y explicabilidad.
+
+[![CI/CD](https://github.com/usuario/h2o-powerbi-automl/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/usuario/h2o-powerbi-automl/actions/workflows/ci_cd.yml)
+[![codecov](https://codecov.io/gh/usuario/h2o-powerbi-automl/branch/main/graph/badge.svg)](https://codecov.io/gh/usuario/h2o-powerbi-automl)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
 ## Características Principales
 
-- **Integración H2O AutoML**: Entrenamiento automatizado de modelos usando H2O.ai
-- **Análisis Automático**: Generación de métricas, visualizaciones y análisis detallados
-- **Interpretabilidad**: Explicaciones detalladas de las predicciones y comportamiento del modelo
-- **Gestión de Modelos**: Sistema completo de gestión del ciclo de vida de modelos
-- **Logging Avanzado**: Sistema robusto de logging con monitoreo y alertas
+- **AutoML con H2O.ai**: Entrenamiento automatizado de modelos
+- **Feature Engineering Avanzado**: 
+  - Detección y tratamiento de outliers
+  - Transformaciones automáticas
+  - Selección de features
+  - Generación de interacciones
+- **Monitoreo y MLOps**:
+  - Detección de drift
+  - Monitoreo de performance
+  - Gestión de experimentos
+  - Versionamiento de modelos
+  - Despliegue automatizado
+- **Explicabilidad**:
+  - SHAP values
+  - LIME explanations
+  - Análisis global y local
+  - Counterfactuals
+- **Integración Power BI**:
+  - Visualizaciones interactivas
+  - Análisis en tiempo real
+  - Dashboards automatizados
 
 ## Estructura del Proyecto
 
 ```
 src/
-├── __init__.py
-├── analisis_manager.py      # Gestión de análisis de modelos
-├── analisis_modelo.py       # Análisis detallado de modelos
-├── analizar_resultados.py   # Análisis de resultados y métricas
-├── asistente_ia.py         # Asistente IA para interpretación
-├── config/
-│   └── logging_config.json  # Configuración centralizada de logs
-├── init_h2o_server.py      # Inicialización del servidor H2O
-├── IntegradorH2O_PBI.py    # Integración principal con Power BI
-├── interpretabilidad.py     # Herramientas de interpretabilidad
-├── logger.py               # Sistema de logging
-├── metricas.py            # Cálculo y gestión de métricas
-├── modelo_manager.py       # Gestión de modelos
-├── modelo_manager_ia.py    # Gestión de modelos con IA
-├── script_pbi.py          # Script principal para Power BI
-├── verificar_java.py      # Verificación de requisitos
-└── visualizaciones.py     # Generación de visualizaciones
+├── features/                # Feature engineering
+│   ├── feature_engineering.py
+│   └── transformers.py
+├── monitoring/             # Monitoreo y drift detection
+│   ├── model_monitor.py
+│   └── drift_detector.py
+├── mlops/                  # MLOps y gestión de modelos
+│   ├── mlops_manager.py
+│   ├── experiment_tracker.py
+│   └── model_registry.py
+├── interpretability/       # Explicabilidad
+│   ├── explainer.py
+│   └── visualizations.py
+└── powerbi/               # Integración Power BI
+    ├── connector.py
+    └── dashboard.py
 ```
-
-## Requisitos
-
-- Python 3.8+
-- H2O.ai
-- Java 8+ (requerido por H2O)
-- Bibliotecas Python (ver requirements.txt)
 
 ## Instalación
 
-1. Clonar el repositorio
-2. Instalar dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Verificar instalación de Java:
-   ```python
-   from src.verificar_java import verificar_requisitos
-   verificar_requisitos()
-   ```
+```bash
+pip install h2o-powerbi-automl
+```
 
-## Uso Básico
+## Uso Rápido
 
 ```python
-from src import H2OModeloAvanzado, ejecutar_prediccion
-import pandas as pd
+from h2o_powerbi_automl import AutoMLManager, FeatureEngineer, ModelMonitor
 
-# Cargar datos
-datos = pd.read_csv('datos.csv')
+# Inicializar componentes
+automl = AutoMLManager()
+engineer = FeatureEngineer()
+monitor = ModelMonitor()
 
-# Ejecutar predicción con análisis completo
-resultado = ejecutar_prediccion(
-    datos=datos,
-    tipo_modelo='automl',
-    analisis_completo=True
+# Preparar datos
+features = engineer.process_features(data)
+
+# Entrenar modelo
+model = automl.train(features, target)
+
+# Monitorear y explicar
+monitor.check_model_health(model, new_data)
+explanations = model.explain_predictions(new_data)
+```
+
+## Feature Engineering
+
+El sistema incluye feature engineering avanzado:
+
+```python
+from h2o_powerbi_automl.features import FeatureEngineer
+
+engineer = FeatureEngineer()
+
+# Proceso completo
+processed_data = engineer.process_features(
+    data,
+    outlier_method='isolation_forest',
+    transform_method='robust',
+    feature_selection='mutual_info'
 )
 ```
 
-## Sistema de Logging
+## Monitoreo y MLOps
 
-El proyecto incluye un sistema avanzado de logging con las siguientes características:
+Sistema completo de monitoreo y MLOps:
 
-- Rotación automática de archivos de log
-- Niveles configurables por módulo
-- Monitoreo y alertas
-- Estadísticas de errores
-- Formato enriquecido con contexto
+```python
+from h2o_powerbi_automl.mlops import MLOpsManager
 
-### Configuración de Logs
+mlops = MLOpsManager()
 
-La configuración se realiza mediante el archivo `config/logging_config.json`:
+# Registrar experimento y modelo
+mlops.track_and_register_model(
+    model_info=model,
+    metrics=metrics,
+    parameters=params
+)
 
-```json
-{
-    "log_dir": "logs",
-    "default_level": "INFO",
-    "handlers": {
-        "file": {
-            "enabled": true,
-            "level": "DEBUG"
-        },
-        "console": {
-            "enabled": true,
-            "level": "INFO"
-        }
-    }
-}
+# Desplegar y monitorear
+mlops.deploy_and_monitor(
+    model_name='my_model',
+    environment='production'
+)
 ```
 
-## Análisis de Modelos
+## Explicabilidad
 
-El sistema proporciona análisis detallado de modelos incluyendo:
+Herramientas avanzadas de explicabilidad:
 
-- Métricas de rendimiento
-- Importancia de variables
-- Análisis de errores
-- Segmentación
-- Tendencias y patrones
-- Visualizaciones
+```python
+from h2o_powerbi_automl.interpretability import ModelExplainer
 
-## Interpretabilidad
+explainer = ModelExplainer(model)
 
-Se incluyen herramientas para interpretación de modelos:
+# Explicación global
+global_explanation = explainer.explain_global()
 
-- SHAP values
-- LIME explanations
-- Análisis de importancia global
-- Explicaciones locales
-- Counterfactuals
+# Explicación local
+local_explanation = explainer.explain_instance(instance)
+```
+
+## CI/CD y Desarrollo
+
+El proyecto utiliza GitHub Actions para CI/CD:
+
+1. **Tests Automáticos**:
+   ```bash
+   pytest tests/
+   ```
+
+2. **Linting y Formato**:
+   ```bash
+   pylint src/ tests/
+   black src/ tests/
+   ```
+
+3. **Coverage**:
+   ```bash
+   pytest --cov=src tests/
+   ```
 
 ## Contribución
 
 1. Fork del repositorio
-2. Crear rama para feature (`git checkout -b feature/nueva-caracteristica`)
-3. Commit de cambios (`git commit -am 'Agregar nueva característica'`)
+2. Crear rama feature (`git checkout -b feature/nueva-caracteristica`)
+3. Commit cambios (`git commit -am 'Agregar nueva característica'`)
 4. Push a la rama (`git push origin feature/nueva-caracteristica`)
 5. Crear Pull Request
 
 ## Licencia
 
-Este proyecto está licenciado bajo MIT License - ver archivo LICENSE para detalles.
+MIT License - ver [LICENSE](LICENSE) para más detalles.

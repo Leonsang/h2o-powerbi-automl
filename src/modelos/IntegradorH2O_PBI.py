@@ -6,6 +6,10 @@ from .modelo_manager import ModeloManager
 from .init_h2o_server import iniciar_servidor_h2o, detener_servidor
 from .analizar_resultados import analizar_resultados
 from .logger import Logger
+from .feature_engineering import FeatureEngineering
+from .visualizaciones import Visualizador
+from .mlops import MLOpsManager
+from .asistente_ia import AsistenteIA
 import numpy as np
 
 class H2OModeloAvanzado:
@@ -19,14 +23,35 @@ class H2OModeloAvanzado:
     """
     
     def __init__(self):
-        """Inicializa H2O con todas sus capacidades pero de forma simple"""
+        """Inicializa H2O con todas sus capacidades"""
         self.logger = Logger('h2o_modelo')
         self.modelo_manager = ModeloManager()
+        self.feature_engineering = FeatureEngineering()
+        self.visualizador = Visualizador()
+        self.mlops_manager = MLOpsManager()
+        self.asistente = AsistenteIA()
+        self.base_dir = os.path.abspath(os.getcwd())
         self.configuracion = {
             'max_models': 10,
             'seed': 42,
             'max_runtime_secs': 300,
-            'include_algos': ['GBM', 'RF', 'DeepLearning', 'GLM']
+            'include_algos': ["DRF", "GBM", "XGBoost", "GLM"],
+            'feature_engineering': {
+                'detectar_outliers': True,
+                'crear_interacciones': True,
+                'reducir_dimensionalidad': False,
+                'seleccionar_features': True,
+                'k_mejores_features': 10
+            },
+            'monitoreo': {
+                'activar_mlops': True,
+                'frecuencia_monitoreo': '1d',
+                'umbral_drift': 0.1
+            },
+            'visualizaciones': {
+                'generar_graficos': True,
+                'guardar_graficos': True
+            }
         }
 
     def obtener_columnas_posibles(self, datos):
@@ -98,7 +123,7 @@ class H2OModeloAvanzado:
                     'precision': perf.precision() if hasattr(perf, 'precision') else None,
                     'recall': perf.recall() if hasattr(perf, 'recall') else None,
                     'f1': perf.F1() if hasattr(perf, 'F1') else None,
-                    'confusion_matrix': perf.confusion_matrix().as_data_frame().to_dict() if hasattr(perf, 'confusion_matrix') else None
+                    'confusion_matrix': perf.confusion_matrix().table.as_data_frame().to_dict() if hasattr(perf, 'confusion_matrix') else None
                 }
             # Métricas específicas para regresión
             else:
@@ -150,27 +175,20 @@ class H2OModeloAvanzado:
         try:
             self.logger.info("Iniciando preprocesamiento de datos")
             
-            # 1. Convertir a H2O Frame
+            # Convertir a H2O Frame
             h2o_frame = h2o.H2OFrame(datos)
             
-            # 2. Identificar tipos de columnas
+            # Identificar tipos de columnas
             columnas_numericas = [col for col in h2o_frame.columns if col != objetivo and 
                                 h2o_frame[col].type in ['int', 'real']]
             columnas_categoricas = [col for col in h2o_frame.columns if col != objetivo and 
                                   h2o_frame[col].type in ['enum', 'string']]
             
-            # 3. Manejo de valores nulos
-            for col in h2o_frame.columns:
-                if h2o_frame[col].isfactor():
-                    h2o_frame[col] = h2o_frame[col].fillna(mode=h2o_frame[col])
-                else:
-                    h2o_frame[col] = h2o_frame[col].fillna(method="mean")
-            
-            # 4. Encoding automático para categóricas
+            # Encoding automático para categóricas
             for col in columnas_categoricas:
                 h2o_frame[col] = h2o_frame[col].asfactor()
             
-            # 5. Normalización de numéricas
+            # Normalización de numéricas
             for col in columnas_numericas:
                 mean = h2o_frame[col].mean()
                 std = h2o_frame[col].sd()
@@ -184,60 +202,80 @@ class H2OModeloAvanzado:
             self.logger.error(f"Error en preprocesamiento: {str(e)}")
             raise
 
-    def entrenar(self, datos, objetivo):
-        """
-        Entrena usando todas las capacidades de H2O automáticamente con particionamiento de datos.
-        
-        Args:
-            datos: DataFrame con los datos
-            objetivo: Variable objetivo
+    def procesar_features(self, datos, objetivo=None):
+        """Aplica feature engineering según la configuración"""
+        try:
+            self.logger.info("Iniciando procesamiento de features")
+            config_fe = self.configuracion['feature_engineering']
             
-        Returns:
-            dict: Resultados del entrenamiento
-        """
+            # 1. Detección y procesamiento de outliers
+            if config_fe['detectar_outliers']:
+                datos = self.feature_engineering.outlier_detector.process(datos)
+            
+            # 2. Crear features de interacción
+            if config_fe['crear_interacciones']:
+                columnas_numericas = datos.select_dtypes(include=['int64', 'float64']).columns
+                datos = self.feature_engineering.crear_features_interaccion(datos, columnas_numericas)
+            
+            # 3. Selección de features
+            if config_fe['seleccionar_features'] and objetivo:
+                datos = self.feature_engineering.seleccionar_features(
+                    datos, 
+                    objetivo,
+                    config_fe['k_mejores_features']
+                )
+            
+            # 4. Reducción de dimensionalidad
+            if config_fe['reducir_dimensionalidad']:
+                datos = self.feature_engineering.reducir_dimensionalidad(datos)
+            
+            return datos
+            
+        except Exception as e:
+            self.logger.error(f"Error en procesamiento de features: {str(e)}")
+            raise
+
+    def entrenar(self, datos, objetivo):
+        """Proceso completo de entrenamiento con todas las capacidades"""
         try:
             # 1. Validar columna objetivo
             if objetivo not in self.obtener_columnas_posibles(datos):
                 raise ValueError(f"Columna {objetivo} no es adecuada como objetivo")
 
-            # 2. Determinar tipo de modelo
-            tipo_modelo = self.determinar_tipo_modelo(datos, objetivo)
-            
-            # 3. Configurar AutoML según tipo
-            if tipo_modelo == 'clasificacion':
-                self.configuracion.update({
-                    'stopping_metric': 'AUC',
-                    'sort_metric': 'AUC',
-                    'nfolds': 5  # Agregar validación cruzada
-                })
-            else:
-                self.configuracion.update({
-                    'stopping_metric': 'RMSE',
-                    'sort_metric': 'RMSE',
-                    'nfolds': 5  # Agregar validación cruzada
-                })
+            # 2. Feature Engineering
+            self.logger.info("Aplicando feature engineering")
+            datos_procesados = self.procesar_features(datos, objetivo)
+            reporte_features = self.feature_engineering.generar_reporte_features(datos, datos_procesados)
 
-            # 4. Preprocesar datos
-            h2o_frame = self.preprocesar_datos(datos, objetivo)
+            # 3. Determinar tipo de modelo
+            tipo_modelo = self.determinar_tipo_modelo(datos_procesados, objetivo)
             
-            # Preparar objetivo para clasificación
+            # 4. Configurar AutoML según tipo
+            self._configurar_automl(tipo_modelo)
+
+            # 5. Preprocesar datos y convertir a H2O Frame
+            h2o_frame = h2o.H2OFrame(datos_procesados)
+            
+            # Convertir objetivo a factor si es clasificación
             if tipo_modelo == 'clasificacion':
                 h2o_frame[objetivo] = h2o_frame[objetivo].asfactor()
             
-            # 5. Particionar datos
+            # 6. Particionar datos
             train, valid, test = self.particionar_datos(h2o_frame, objetivo)
             
-            # 6. AutoML con todas las capacidades y validación cruzada
+            # 7. Entrenar modelo
             aml = h2o.automl.H2OAutoML(
                 max_models=self.configuracion['max_models'],
                 seed=self.configuracion['seed'],
                 max_runtime_secs=self.configuracion['max_runtime_secs'],
                 include_algos=self.configuracion['include_algos'],
-                nfolds=self.configuracion['nfolds'],
-                keep_cross_validation_predictions=True
+                nfolds=self.configuracion.get('nfolds', 5),
+                keep_cross_validation_predictions=True,
+                sort_metric=self.configuracion.get('sort_metric', 'AUTO'),
+                stopping_metric=self.configuracion.get('stopping_metric', 'AUTO'),
+                verbosity='info'
             )
             
-            # Entrenar con conjuntos de validación
             aml.train(
                 y=objetivo,
                 training_frame=train,
@@ -245,44 +283,221 @@ class H2OModeloAvanzado:
                 leaderboard_frame=test
             )
             
-            # 7. Obtener predicciones del mejor modelo en conjunto de prueba
+            # 8. Generar predicciones y métricas
             predicciones = aml.leader.predict(test)
-            predicciones_df = predicciones.as_data_frame()
-            
-            # 8. Obtener métricas del mejor modelo en conjunto de prueba
             metricas = self.obtener_metricas_modelo(aml.leader, test)
             
-            # 9. Guardar solo el mejor modelo con nombre descriptivo
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-            nombre_modelo = f"{tipo_modelo}_{objetivo}_{aml.leader.__class__.__name__}_{timestamp}"
-            
-            self.modelo_manager.guardar_modelo(
-                modelo=aml.leader,
-                nombre=nombre_modelo,
-                metricas=metricas
-            )
-            
-            # 10. Preparar resultado
-            return {
-                'predicciones': predicciones_df,
-                'tipo_modelo': tipo_modelo,
+            # 9. Preparar resultados
+            resultados = {
+                'modelo': aml.leader,
                 'metricas': metricas,
-                'modelo_info': {
-                    'nombre': nombre_modelo,
-                    'tipo': aml.leader.__class__.__name__,
-                    'variables_importantes': aml.leader.varimp(use_pandas=True) if hasattr(aml.leader, 'varimp') else None,
-                    'leaderboard': aml.leaderboard.as_data_frame().to_dict(),
-                    'tiempo_total': aml.training_time_ms if hasattr(aml, 'training_time_ms') else None,
-                    'particion_datos': {
-                        'train_size': train.shape[0],
-                        'valid_size': valid.shape[0],
-                        'test_size': test.shape[0]
-                    }
-                }
+                'predicciones': predicciones.as_data_frame(),
+                'datos_test': test,
+                'importancia_variables': self._obtener_importancia_variables(aml.leader),
+                'leaderboard': aml.leaderboard.as_data_frame(),
+                'tipo_modelo': tipo_modelo,
+                'configuracion': self.configuracion
             }
+            
+            return resultados
             
         except Exception as e:
             self.logger.error(f"Error en entrenamiento: {str(e)}")
+            raise
+
+    def _configurar_automl(self, tipo_modelo):
+        """Configura AutoML según el tipo de modelo"""
+        if tipo_modelo == 'clasificacion':
+            self.configuracion.update({
+                'stopping_metric': 'AUC',
+                'sort_metric': 'AUC',
+                'nfolds': 5
+            })
+        else:
+            self.configuracion.update({
+                'stopping_metric': 'RMSE',
+                'sort_metric': 'RMSE',
+                'nfolds': 5
+            })
+
+    def _configurar_mlops(self, modelo, datos, objetivo):
+        """Configura el monitoreo MLOps"""
+        try:
+            metadata = {
+                'tipo_modelo': self.determinar_tipo_modelo(datos, objetivo),
+                'features': datos.columns.tolist(),
+                'configuracion_feature_engineering': self.configuracion['feature_engineering'],
+                'configuracion_modelo': self.configuracion
+            }
+            
+            modelo_id = self.mlops_manager.registrar_modelo(modelo, metadata)
+            
+            # Configurar monitoreo
+            self.mlops_manager.monitorear_modelo(
+                modelo_id,
+                datos,
+                objetivo
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error configurando MLOps: {str(e)}")
+            raise
+
+    def _obtener_importancia_variables(self, modelo):
+        """Obtiene la importancia de variables del modelo"""
+        try:
+            if hasattr(modelo, 'varimp'):
+                importancia = modelo.varimp(use_pandas=True)
+                return dict(zip(importancia['variable'], importancia['relative_importance']))
+            return {}
+        except Exception as e:
+            self.logger.error(f"Error obteniendo importancia de variables: {str(e)}")
+            return {}
+
+    def _crear_estructura_modelo(self, modelo_id):
+        """Crea la estructura de directorios para un modelo"""
+        estructura = {
+            'modelo': os.path.join(self.base_dir, 'mlops', 'modelos', modelo_id),
+            'metricas': os.path.join(self.base_dir, 'mlops', 'metricas', modelo_id),
+            'visualizaciones': os.path.join(self.base_dir, 'output', 'visualizaciones', modelo_id),
+            'reportes': os.path.join(self.base_dir, 'output', 'reportes', modelo_id),
+            'logs': os.path.join(self.base_dir, 'logs', modelo_id)
+        }
+        
+        for directorio in estructura.values():
+            os.makedirs(directorio, exist_ok=True)
+            
+        return estructura
+
+    def ejecutar_flujo_completo(self, datos, objetivo):
+        """Ejecuta el flujo completo de análisis, modelado, visualización e interpretación."""
+        try:
+            self.logger.info("Iniciando flujo completo de análisis y modelado")
+            
+            # Generar ID del modelo
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            modelo_id = f"modelo_{timestamp}"
+            
+            # Crear estructura de directorios
+            estructura = self._crear_estructura_modelo(modelo_id)
+            
+            # 1. Análisis inicial del dataset
+            analisis_dataset = self.analizar_dataset(datos, objetivo)
+            self.logger.info("Análisis de dataset completado")
+            
+            # 2. Entrenamiento del modelo
+            resultados_modelo = self.entrenar(datos, objetivo)
+            resultados_modelo['modelo_id'] = modelo_id
+            self.logger.info("Entrenamiento completado")
+            
+            # 3. Generar visualizaciones
+            self.logger.info("Generando visualizaciones")
+            visualizaciones = {}
+            
+            # Generar y guardar visualizaciones
+            figs = {
+                'distribucion': self.visualizador.plot_distribucion_variables(datos),
+                'correlaciones': self.visualizador.plot_correlaciones(datos),
+                'importancia': self.visualizador.plot_importancia_variables(
+                    resultados_modelo['importancia_variables']
+                )
+            }
+            
+            # Guardar cada visualización
+            for nombre, fig in figs.items():
+                if fig is not None:
+                    ruta = self.visualizador.guardar_visualizacion(fig, nombre, modelo_id)
+                    visualizaciones[nombre] = ruta
+            
+            # 4. Generar interpretación IA
+            self.logger.info("Generando interpretación IA")
+            interpretacion = self.asistente.generar_reporte_completo({
+                'analisis_dataset': analisis_dataset,
+                'metricas': resultados_modelo['metricas'],
+                'interpretacion': {
+                    'importancia_variables': resultados_modelo['importancia_variables']
+                },
+                'objetivo': objetivo
+            })
+            
+            # Guardar reporte IA
+            ruta_reporte = os.path.join(estructura['reportes'], 'reporte_ia.txt')
+            with open(ruta_reporte, 'w', encoding='utf-8') as f:
+                f.write(interpretacion)
+            
+            # 5. Configurar MLOps
+            if self.configuracion['monitoreo']['activar_mlops']:
+                self.logger.info("Configurando MLOps")
+                self._configurar_mlops(
+                    resultados_modelo['modelo'],
+                    datos,
+                    objetivo
+                )
+            
+            # 6. Integrar todos los resultados
+            resultados_completos = {
+                'analisis_dataset': analisis_dataset,
+                'modelo': resultados_modelo,
+                'visualizaciones': visualizaciones,
+                'interpretacion_ia': interpretacion,
+                'configuracion': self.configuracion,
+                'timestamp': timestamp,
+                'modelo_id': modelo_id,
+                'rutas': estructura
+            }
+            
+            self.logger.info("Flujo completo ejecutado exitosamente")
+            return resultados_completos
+            
+        except Exception as e:
+            self.logger.error(f"Error en flujo completo: {str(e)}")
+            raise
+
+    def generar_reporte_power_bi(self, resultados):
+        """
+        Genera un reporte estructurado para Power BI.
+        
+        Args:
+            resultados: Dict con los resultados del flujo completo
+            
+        Returns:
+            dict: Reporte estructurado para Power BI
+        """
+        try:
+            self.logger.info("Generando reporte para Power BI")
+            
+            # 1. Métricas principales
+            metricas_principales = pd.DataFrame({
+                'Metrica': ['AUC', 'Precisión', 'Recall'],
+                'Valor': [
+                    resultados['modelo']['metricas']['clasificacion']['auc'],
+                    resultados['modelo']['metricas']['clasificacion']['precision'][0][1],
+                    resultados['modelo']['metricas']['clasificacion']['recall'][0][1]
+                ]
+            })
+            
+            # 2. Importancia de variables
+            importancia_vars = pd.DataFrame([
+                {'Variable': k, 'Importancia': v}
+                for k, v in resultados['modelo']['importancia_variables'].items()
+            ])
+            
+            # 3. Insights principales
+            insights = pd.DataFrame([
+                {'Categoria': 'Dataset', 'Insight': resultados['analisis_dataset']['recomendaciones'][0]['descripcion']},
+                {'Categoria': 'Modelo', 'Insight': resultados['interpretacion_ia'].split('\n')[2]},
+                {'Categoria': 'Recomendaciones', 'Insight': resultados['interpretacion_ia'].split('\n')[-2]}
+            ])
+            
+            return {
+                'metricas': metricas_principales,
+                'importancia_variables': importancia_vars,
+                'insights': insights,
+                'visualizaciones': resultados['visualizaciones']
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error generando reporte Power BI: {str(e)}")
             raise
 
     def analizar_causalidad(self, datos, objetivo, variables):

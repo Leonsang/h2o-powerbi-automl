@@ -1,0 +1,57 @@
+{
+    "tipo_modelo": "clasificacion",
+    "features": [
+        "PassengerId",
+        "Survived",
+        "Pclass",
+        "Name",
+        "Sex",
+        "Age",
+        "SibSp",
+        "Parch",
+        "Ticket",
+        "Fare",
+        "Cabin",
+        "Embarked"
+    ],
+    "configuracion_feature_engineering": {
+        "detectar_outliers": true,
+        "crear_interacciones": true,
+        "reducir_dimensionalidad": false,
+        "seleccionar_features": true,
+        "k_mejores_features": 10
+    },
+    "configuracion_modelo": {
+        "max_models": 10,
+        "seed": 42,
+        "max_runtime_secs": 300,
+        "include_algos": [
+            "DRF",
+            "GBM",
+            "XGBoost",
+            "GLM"
+        ],
+        "feature_engineering": {
+            "detectar_outliers": true,
+            "crear_interacciones": true,
+            "reducir_dimensionalidad": false,
+            "seleccionar_features": true,
+            "k_mejores_features": 10
+        },
+        "monitoreo": {
+            "activar_mlops": true,
+            "frecuencia_monitoreo": "1d",
+            "umbral_drift": 0.1
+        },
+        "visualizaciones": {
+            "generar_graficos": true,
+            "guardar_graficos": true
+        },
+        "stopping_metric": "AUC",
+        "sort_metric": "AUC",
+        "nfolds": 5
+    },
+    "id": "modelo_20250108_224707",
+    "fecha_registro": "2025-01-08T22:47:09.221805",
+    "ruta_modelo": "C:\\Users\\PILAR BELLO\\Desktop\\H20Ai\\mlops\\modelos\\modelo_20250108_224707\\modelo"
+}
