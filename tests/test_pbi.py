@@ -1,40 +1,78 @@
 import unittest
 import pandas as pd
-import sys
-import os
+import h2o
+from src.IntegradorH2O_PBI import H2OModeloAvanzado
+from src.logger import Logger
 
-# Agregar el directorio raíz al path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from src.IntegradorH2O_PBI import H2OModeloAvanzado, main
-from src.init_h2o_server import iniciar_servidor_h2o, detener_servidor, H2O_CONFIG
+logger = Logger('test_pbi')
 
 class TestPowerBI(unittest.TestCase):
-    def setUp(self):
-        """Preparar el entorno para cada test"""
-        self.servidor_iniciado = iniciar_servidor_h2o()
-        self.datos = pd.read_csv('datos/matriculas.csv')
+    @classmethod
+    def setUpClass(cls):
+        """Preparar datos de prueba"""
+        cls.datos_prueba = pd.DataFrame({
+            'x1': range(100),
+            'x2': [i * 2 for i in range(100)],
+            'target': [i + i * 2 for i in range(100)]
+        })
+        h2o.init()
 
-    def tearDown(self):
-        """Limpiar después de cada test"""
-        detener_servidor()
-
-    def test_script_pbi(self):
-        """Simula la ejecución desde Power BI"""
+    def test_integracion_powerbi(self):
+        """Verifica la integración básica con Power BI"""
         try:
-            # Probar función principal
-            resultado = main(dataset=self.datos)
+            # 1. Crear modelo
+            modelo = H2OModeloAvanzado(
+                objetivo='target',
+                predictoras=['x1', 'x2']
+            )
             
-            # Verificaciones
-            self.assertIsInstance(resultado, pd.DataFrame)
-            self.assertIn('prediccion', resultado.columns)
-            self.assertNotIn('Error', resultado.columns)
+            # 2. Entrenar con datos de prueba
+            resultado = modelo.entrenar(self.datos_prueba)
+            self.assertTrue(resultado['modelo'])
+            self.assertTrue(resultado['predicciones'] is not None)
             
-            # Verificar que usamos el puerto correcto
-            self.assertTrue(h2o.connection().current_connection_url.endswith(str(H2O_CONFIG['port'])))
+            logger.info("Integración con Power BI exitosa")
             
         except Exception as e:
-            self.fail(f"El script falló: {str(e)}")
+            logger.error(f"Error en integración Power BI: {str(e)}")
+            raise
+
+    def test_predicciones_powerbi(self):
+        """Verifica las predicciones para Power BI"""
+        try:
+            modelo = H2OModeloAvanzado(
+                objetivo='target',
+                predictoras=['x1', 'x2']
+            )
+            
+            # 1. Entrenar modelo
+            resultado = modelo.entrenar(self.datos_prueba)
+            
+            # 2. Hacer predicciones
+            nuevos_datos = pd.DataFrame({
+                'x1': range(10),
+                'x2': range(10)
+            })
+            predicciones = modelo.predecir(
+                modelo=resultado['modelo'],
+                datos=nuevos_datos
+            )
+            
+            # 3. Verificar predicciones
+            self.assertEqual(len(predicciones), len(nuevos_datos))
+            self.assertTrue(all(isinstance(x, (int, float)) for x in predicciones))
+            
+            logger.info("Predicciones para Power BI generadas correctamente")
+            
+        except Exception as e:
+            logger.error(f"Error en predicciones Power BI: {str(e)}")
+            raise
+
+    @classmethod
+    def tearDownClass(cls):
+        """Limpiar recursos"""
+        h2o.cluster().show_status()
+        h2o.remove_all()
 
 if __name__ == '__main__':
     unittest.main() 

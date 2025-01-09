@@ -1,82 +1,173 @@
-# 🔍 Explicabilidad
+# Explicabilidad e Interpretabilidad
 
-## 🎯 Interpretación de Modelos
+## Visión General
+Este módulo proporciona herramientas avanzadas para interpretar y explicar los modelos usando una combinación de técnicas tradicionales y asistencia de IA.
 
-### LIME (Local Interpretable Model-agnostic Explanations)
+## Componentes de Explicabilidad
+
+### 1. SHAP (SHapley Additive exPlanations)
 ```python
-from src.IntegradorH2O_PBI import H2OModeloAvanzado
+from src.interpretabilidad import Interpretador
+from src.visualizaciones import Visualizador
 
-# Explicar predicción específica
-explicacion = modelo.explicar_prediccion(
-    id_prediccion=123,
-    metodo='lime',
+# Calcular SHAP values
+interpretador = Interpretador()
+shap_values = interpretador.calcular_shap_values(
+    modelo=resultado['modelo'],
+    datos=datos
+)
+
+# Visualizar
+viz = Visualizador()
+viz.plot_shap_summary(shap_values)
+viz.plot_shap_dependence(shap_values, feature='precio')
+```
+
+### 2. LIME (Local Interpretable Model-agnostic Explanations)
+```python
+# Generar explicaciones locales
+explicaciones_lime = interpretador.generar_lime_explicaciones(
+    modelo=resultado['modelo'],
+    datos=datos,
     num_features=5
 )
+
+# Visualizar explicación específica
+for explicacion in explicaciones_lime:
+    viz.plot_lime_explanation(explicacion)
 ```
 
-### Importancia Global
+### 3. Counterfactuals con DiCE
 ```python
-# Obtener importancia global
-importancia = modelo.obtener_importancia_global()
+# Generar counterfactuals
+counterfactuals = interpretador.generar_counterfactuals(
+    modelo=resultado['modelo'],
+    datos=datos
+)
 
-# Visualizar
-modelo.plot_importancia_global()
+# Analizar cambios necesarios
+for cf in counterfactuals:
+    print(f"\nCaso {cf['caso']}:")
+    print("Cambios necesarios:")
+    for cambio in cf['cambios']:
+        print(f"- {cambio}")
 ```
 
-## 🎨 SHAP Values
+## Asistente IA para Interpretación
 
-### Cálculo de SHAP
+### 1. Análisis Global
 ```python
-# Calcular SHAP values
-shap_values = modelo.calcular_shap_values(datos_test)
+from src.asistente_ia import AsistenteDataScience
 
-# Visualizar
-modelo.plot_shap_summary()
+asistente = AsistenteDataScience()
+
+# Interpretar resultados globales
+interpretacion = asistente.interpretar_resultados({
+    'metricas': resultado['metricas'],
+    'importancia_variables': resultado['importancia_variables'],
+    'shap_values': shap_values
+})
+
+print("\nInterpretación IA:")
+print(interpretacion)
 ```
 
-### Interpretación Local
+### 2. Explicaciones Locales
 ```python
-# Explicar una instancia
-explicacion_local = modelo.explicar_instancia(
-    instancia_id=456,
-    metodo='shap'
+# Explicar predicciones específicas
+for caso in resultado['casos_especiales']:
+    explicacion = asistente.explicar_predicciones(
+        caso=caso,
+        explicacion_lime=explicaciones_lime[caso['id']],
+        counterfactual=counterfactuals[caso['id']]
+    )
+    print(f"\nExplicación caso {caso['id']}:")
+    print(explicacion)
+```
+
+### 3. Recomendaciones Técnicas
+```python
+# Generar recomendaciones
+recomendaciones = asistente.generar_recomendaciones_tecnicas({
+    'modelo': resultado['modelo'],
+    'metricas': resultado['metricas'],
+    'shap_values': shap_values
+})
+
+print("\nRecomendaciones técnicas:")
+print(recomendaciones)
+```
+
+## Visualizaciones Avanzadas
+
+### 1. Dashboards Interactivos
+```python
+from src.visualizaciones import DashboardExplicabilidad
+
+dashboard = DashboardExplicabilidad()
+dashboard.generar_dashboard(
+    resultado=resultado,
+    shap_values=shap_values,
+    lime_explicaciones=explicaciones_lime,
+    counterfactuals=counterfactuals
 )
 ```
 
-## 📊 Importancia de Variables
-
-### Ranking de Variables
+### 2. Reportes Automáticos
 ```python
-# Obtener ranking
-ranking = modelo.ranking_variables()
-print(ranking.head())
-```
+from src.reportes import GeneradorReportes
 
-### Dependencia Parcial
-```python
-# Gráficos de dependencia
-modelo.plot_dependencia_parcial(
-    variable='precio',
-    interaccion='region'
+generador = GeneradorReportes()
+reporte = generador.generar_reporte_explicabilidad(
+    resultado=resultado,
+    interpretacion_ia=interpretacion,
+    formato='html'
 )
 ```
 
-## 🔄 Análisis de Predicciones
+## Integración con Power BI
 
-### Explicaciones en Lenguaje Natural
+### 1. Visuales Personalizados
 ```python
-# Generar explicación
-explicacion = modelo.generar_explicacion_natural(
-    prediccion_id=789,
-    nivel_detalle='alto'
-)
+def crear_visuales_explicabilidad(datos):
+    """Crea visuales para Power BI"""
+    return {
+        'shap_summary': viz.plot_shap_summary(...),
+        'lime_explicaciones': viz.plot_lime_explicaciones(...),
+        'counterfactuals': viz.plot_counterfactuals(...)
+    }
 ```
 
-### Dashboard de Explicabilidad
+### 2. Insights Automáticos
 ```python
-# Crear dashboard
-dashboard = modelo.crear_dashboard_explicabilidad(
-    predicciones=predicciones_recientes,
-    metricas=['shap', 'importancia', 'residuos']
-)
-``` 
+def generar_insights_powerbi(resultado):
+    """Genera insights para Power BI"""
+    insights = asistente.generar_insights({
+        'shap': resultado['shap_values'],
+        'lime': resultado['lime_explicaciones'],
+        'counterfactuals': resultado['counterfactuals']
+    })
+    return pd.DataFrame(insights)
+```
+
+## Mejores Prácticas
+
+1. **Interpretabilidad Global**
+   - Usar múltiples técnicas
+   - Validar con expertos
+   - Documentar hallazgos
+
+2. **Explicaciones Locales**
+   - Personalizar por audiencia
+   - Validar con casos conocidos
+   - Mantener consistencia
+
+3. **Comunicación**
+   - Adaptar nivel técnico
+   - Usar visualizaciones claras
+   - Proporcionar contexto
+
+## Siguientes Pasos
+1. [Mantenimiento](09-mantenimiento.md)
+2. [Seguridad](10-seguridad.md)
+3. [Optimización](11-optimizacion.md) 

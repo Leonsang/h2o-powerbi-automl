@@ -1,93 +1,135 @@
-# 🚀 H2O AutoML para Power BI
+# H2O AutoML Integration for Power BI
 
-> Democratizando el Machine Learning para impulsar la toma de decisiones basada en datos.
+Este proyecto proporciona una integración avanzada entre H2O AutoML y Power BI, permitiendo el entrenamiento automatizado de modelos de machine learning y su análisis detallado.
 
-[![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![H2O Version](https://img.shields.io/badge/h2o-3.40+-blue.svg)](https://h2o.ai/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+## Características Principales
 
-## 🌟 Propósito
+- **Integración H2O AutoML**: Entrenamiento automatizado de modelos usando H2O.ai
+- **Análisis Automático**: Generación de métricas, visualizaciones y análisis detallados
+- **Interpretabilidad**: Explicaciones detalladas de las predicciones y comportamiento del modelo
+- **Gestión de Modelos**: Sistema completo de gestión del ciclo de vida de modelos
+- **Logging Avanzado**: Sistema robusto de logging con monitoreo y alertas
 
-Este proyecto nace de la necesidad de democratizar el análisis avanzado de datos:
+## Estructura del Proyecto
 
-- 🎯 **Decisiones Informadas**: De datos a acciones concretas
-- 👥 **ML para Todos**: Accesible a usuarios de negocio
-- 📊 **Cultura Data-Driven**: Fomentar decisiones basadas en datos
-
-## 🌟 Características
-
-- 🤖 **AutoML Explicable**: 
-  - Modelos transparentes y comprensibles
-  - Explicaciones de predicciones
-  - Importancia de variables
-
-- 📊 **Visualización Intuitiva**: 
-  - Gráficos interactivos
-  - Dashboards autoexplicativos
-  - Métricas de negocio
-
-- 📈 **Análisis Profundo**: 
-  - Patrones ocultos
-  - Relaciones entre variables
-  - Tendencias y estacionalidades
-
-## 🎯 Casos de Uso
-
-1. **Predicción de Demanda**
-   - *¿Por qué?* Optimizar inventario y recursos
-   - *Datos:* Históricos de ventas, eventos, temporadas
-   - *Resultado:* Planificación eficiente
-
-2. **Retención de Clientes**
-   - *¿Por qué?* Reducir la pérdida de clientes
-   - *Datos:* Comportamiento, satisfacción, interacciones
-   - *Resultado:* Acciones preventivas personalizadas
-
-3. **Optimización de Precios**
-   - *¿Por qué?* Maximizar ingresos
-   - *Datos:* Históricos de ventas, competencia, costos
-   - *Resultado:* Estrategias de precio dinámicas
-
-## 🛠️ Instalación Rápida
-
-### Windows
-```bash
-git clone https://github.com/Leonsang/h2o-powerbi-automl.git
-cd h2o-powerbi-automl
-install.bat
+```
+src/
+├── __init__.py
+├── analisis_manager.py      # Gestión de análisis de modelos
+├── analisis_modelo.py       # Análisis detallado de modelos
+├── analizar_resultados.py   # Análisis de resultados y métricas
+├── asistente_ia.py         # Asistente IA para interpretación
+├── config/
+│   └── logging_config.json  # Configuración centralizada de logs
+├── init_h2o_server.py      # Inicialización del servidor H2O
+├── IntegradorH2O_PBI.py    # Integración principal con Power BI
+├── interpretabilidad.py     # Herramientas de interpretabilidad
+├── logger.py               # Sistema de logging
+├── metricas.py            # Cálculo y gestión de métricas
+├── modelo_manager.py       # Gestión de modelos
+├── modelo_manager_ia.py    # Gestión de modelos con IA
+├── script_pbi.py          # Script principal para Power BI
+├── verificar_java.py      # Verificación de requisitos
+└── visualizaciones.py     # Generación de visualizaciones
 ```
 
-### Linux/Mac
-```bash
-git clone https://github.com/Leonsang/h2o-powerbi-automl.git
-cd h2o-powerbi-automl
-chmod +x install.sh
-./install.sh
+## Requisitos
+
+- Python 3.8+
+- H2O.ai
+- Java 8+ (requerido por H2O)
+- Bibliotecas Python (ver requirements.txt)
+
+## Instalación
+
+1. Clonar el repositorio
+2. Instalar dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Verificar instalación de Java:
+   ```python
+   from src.verificar_java import verificar_requisitos
+   verificar_requisitos()
+   ```
+
+## Uso Básico
+
+```python
+from src import H2OModeloAvanzado, ejecutar_prediccion
+import pandas as pd
+
+# Cargar datos
+datos = pd.read_csv('datos.csv')
+
+# Ejecutar predicción con análisis completo
+resultado = ejecutar_prediccion(
+    datos=datos,
+    tipo_modelo='automl',
+    analisis_completo=True
+)
 ```
 
-## 📚 Documentación
+## Sistema de Logging
 
-- [Guía de Inicio Rápido](docs/quickstart.md)
-- [Manual de Usuario](docs/manual.md)
-- [Referencia API](docs/api.md)
-- [Wiki Completa](wiki/README.md)
+El proyecto incluye un sistema avanzado de logging con las siguientes características:
 
-## 🤝 Contribuir
+- Rotación automática de archivos de log
+- Niveles configurables por módulo
+- Monitoreo y alertas
+- Estadísticas de errores
+- Formato enriquecido con contexto
 
-¡Las contribuciones son bienvenidas! Por favor, lee nuestra [Guía de Contribución](CONTRIBUTING.md).
+### Configuración de Logs
 
-## 📝 Licencia
+La configuración se realiza mediante el archivo `config/logging_config.json`:
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+```json
+{
+    "log_dir": "logs",
+    "default_level": "INFO",
+    "handlers": {
+        "file": {
+            "enabled": true,
+            "level": "DEBUG"
+        },
+        "console": {
+            "enabled": true,
+            "level": "INFO"
+        }
+    }
+}
+```
 
-## ✨ Agradecimientos
+## Análisis de Modelos
 
-- Equipo H2O.ai por su excelente framework
-- Comunidad de Power BI por su apoyo
-- Contribuidores y usuarios del proyecto
+El sistema proporciona análisis detallado de modelos incluyendo:
 
-## 📫 Contacto
+- Métricas de rendimiento
+- Importancia de variables
+- Análisis de errores
+- Segmentación
+- Tendencias y patrones
+- Visualizaciones
 
-- **Autor**: Erick Sang
-- **Email**: ericksang@gmail.com
-- **GitHub**: [@Leonsang](https://github.com/Leonsang)
+## Interpretabilidad
+
+Se incluyen herramientas para interpretación de modelos:
+
+- SHAP values
+- LIME explanations
+- Análisis de importancia global
+- Explicaciones locales
+- Counterfactuals
+
+## Contribución
+
+1. Fork del repositorio
+2. Crear rama para feature (`git checkout -b feature/nueva-caracteristica`)
+3. Commit de cambios (`git commit -am 'Agregar nueva característica'`)
+4. Push a la rama (`git push origin feature/nueva-caracteristica`)
+5. Crear Pull Request
+
+## Licencia
+
+Este proyecto está licenciado bajo MIT License - ver archivo LICENSE para detalles.

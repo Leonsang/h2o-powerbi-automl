@@ -1,118 +1,205 @@
-# 🚀 Optimización
+# Optimización y Rendimiento
 
-## 💻 Rendimiento
+## Visión General
+Este módulo proporciona guías y herramientas para optimizar el rendimiento del sistema en diferentes escenarios.
 
-### Optimización de Memoria
+## Optimización de Memoria
+
+### 1. Gestión de Memoria H2O
 ```python
-from src.IntegradorH2O_PBI import H2OModeloAvanzado
+import h2o
+from src.optimizacion import OptimizadorMemoria
 
-# Configurar uso de memoria
-modelo = H2OModeloAvanzado(
-    memoria_maxima='4g',
-    optimizar_memoria=True
-)
+optimizador = OptimizadorMemoria()
 
-# Procesar por lotes
-for lote in modelo.procesar_por_lotes(datos, tamano_lote=1000):
-    resultado = modelo.predecir(lote)
+# Configurar memoria H2O
+optimizador.configurar_memoria_h2o({
+    'max_mem': '16G',
+    'min_mem': '4G',
+    'chunk_size': '1M',
+    'gc_interval': 300
+})
+
+# Monitorear uso
+estado_memoria = optimizador.monitorear_memoria()
+print(f"Uso de memoria: {estado_memoria['uso_actual']}")
 ```
 
-### Paralelización
+### 2. Procesamiento por Lotes
 ```python
-# Configurar procesamiento paralelo
-config_paralelo = {
-    'nthreads': -1,  # Usar todos los cores
-    'distribuido': True,
-    'cluster_size': 3
-}
+from src.procesamiento import ProcesadorLotes
 
-# Entrenar con paralelización
-modelo.entrenar(datos, **config_paralelo)
-```
+procesador = ProcesadorLotes()
 
-## 📈 Escalabilidad
-
-### Procesamiento Distribuido
-```python
-# Configurar cluster H2O
-cluster_config = {
-    'nodos': ['ip1:port1', 'ip2:port2'],
-    'memoria_por_nodo': '8g',
-    'max_threads': 8
-}
-
-# Iniciar cluster
-modelo.iniciar_cluster(**cluster_config)
-```
-
-### Gestión de Recursos
-```python
-# Monitorear recursos
-stats = modelo.monitorear_recursos()
-print(f"CPU: {stats['cpu_usage']}%")
-print(f"Memoria: {stats['memoria_uso']} / {stats['memoria_total']}")
-```
-
-## 🔧 Recursos de Sistema
-
-### Configuración de Hardware
-1. **CPU**
-   - Número de cores
-   - Frecuencia
-   - Cache
-
-2. **Memoria**
-   - RAM disponible
-   - Swap
-   - Cache
-
-3. **Almacenamiento**
-   - Tipo (SSD/HDD)
-   - Espacio libre
-   - Velocidad I/O
-
-### Optimización de SO
-```python
-# Configurar sistema
-modelo.optimizar_sistema(
-    prioridad='alta',
-    afinidad_cpu=[0,1,2,3],
-    limite_memoria='16g'
+# Procesar datos grandes
+resultado = procesador.procesar_datos(
+    datos=datos_grandes,
+    batch_size=1000,
+    num_workers=4,
+    memoria_maxima='8G'
 )
 ```
 
-## 🎯 Casos Extremos
+## Optimización de Modelos
 
-### Datos Grandes
+### 1. Selección de Features
 ```python
-# Manejo de datos grandes
-with modelo.procesar_datos_grandes(
-    ruta='datos/grande.csv',
-    chunk_size='100MB'
-) as procesador:
-    for chunk in procesador:
-        resultado = modelo.procesar_chunk(chunk)
+from src.optimizacion import OptimizadorFeatures
+
+optimizador = OptimizadorFeatures()
+
+# Optimizar selección
+features_optimas = optimizador.seleccionar_features(
+    datos=datos,
+    objetivo='target',
+    metodo='boruta',
+    max_features=20
+)
+
+print("\nFeatures seleccionadas:")
+for feature, importancia in features_optimas.items():
+    print(f"- {feature}: {importancia:.3f}")
 ```
 
-### Alta Concurrencia
+### 2. Hiperparámetros
 ```python
-# Configurar para alta concurrencia
-modelo.configurar_concurrencia(
-    max_conexiones=100,
-    timeout=30,
-    pool_size=10
+from src.optimizacion import OptimizadorHiperparametros
+
+# Optimización bayesiana
+optimizador = OptimizadorHiperparametros()
+mejores_params = optimizador.optimizar(
+    modelo=modelo,
+    espacio_busqueda=espacio_params,
+    metrica='auto',
+    n_trials=100,
+    timeout=3600
 )
 ```
 
-### Recuperación de Errores
+## Optimización de Consultas
+
+### 1. Caché Inteligente
 ```python
-# Manejo de errores y recuperación
-try:
-    resultado = modelo.procesar_con_retry(
-        datos,
-        max_intentos=3,
-        backoff=2
+from src.cache import CacheManager
+
+cache = CacheManager()
+
+# Configurar caché
+cache.configurar({
+    'estrategia': 'lru',
+    'max_size': '2G',
+    'ttl': '1d',
+    'compresion': True
+})
+
+# Usar caché
+@cache.cachear(ttl='1h')
+def predecir_lote(datos):
+    return modelo.predecir(datos)
+```
+
+### 2. Paralelización
+```python
+from src.paralelizacion import Paralelizador
+
+paralelo = Paralelizador()
+
+# Procesar en paralelo
+resultados = paralelo.ejecutar(
+    funcion=procesar_datos,
+    datos=datos_grandes,
+    n_workers=4,
+    backend='threading'
+)
+```
+
+## Optimización de Power BI
+
+### 1. Consultas Eficientes
+```python
+def optimizar_consulta_powerbi(datos):
+    """Optimiza datos para Power BI"""
+    # Reducir dimensionalidad
+    datos = reducir_dimensiones(datos)
+    
+    # Agregar datos
+    datos = agregar_datos(datos)
+    
+    # Comprimir resultados
+    return comprimir_datos(datos)
+```
+
+### 2. Actualización Incremental
+```python
+def actualizar_incremental(datos_nuevos):
+    """Actualización incremental para Power BI"""
+    from src.powerbi import ActualizadorIncremental
+    
+    actualizador = ActualizadorIncremental()
+    actualizador.actualizar(
+        datos_nuevos=datos_nuevos,
+        estrategia='merge',
+        validar_duplicados=True
     )
-except Exception as e:
-    modelo.manejar_error(e)
-``` 
+```
+
+## Monitoreo de Rendimiento
+
+### 1. Métricas de Rendimiento
+```python
+from src.monitoreo import MonitorRendimiento
+
+monitor = MonitorRendimiento()
+
+# Recolectar métricas
+metricas = monitor.recolectar_metricas()
+
+# Analizar rendimiento
+analisis = monitor.analizar_rendimiento(
+    metricas=metricas,
+    periodo='1d'
+)
+
+print("\nPuntos de mejora detectados:")
+for punto in analisis['mejoras']:
+    print(f"- {punto}")
+```
+
+### 2. Alertas de Rendimiento
+```python
+from src.alertas import AlertasRendimiento
+
+alertas = AlertasRendimiento()
+
+# Configurar umbrales
+alertas.configurar_umbrales({
+    'tiempo_respuesta': 5.0,
+    'uso_memoria': 0.8,
+    'error_rate': 0.01
+})
+
+# Monitoreo continuo
+alertas.iniciar_monitoreo()
+```
+
+## Mejores Prácticas
+
+1. **Gestión de Recursos**
+   - Monitorear uso de memoria
+   - Optimizar consultas
+   - Usar caché estratégicamente
+
+2. **Procesamiento**
+   - Paralelizar cuando sea posible
+   - Procesar por lotes
+   - Optimizar E/S
+
+3. **Mantenimiento**
+   - Monitorear rendimiento
+   - Optimizar periódicamente
+   - Documentar mejoras
+
+## Siguientes Pasos
+1. [FAQ](12-faq.md)
+2. [README](README.md)
+3. [Inicio](01-introduccion.md) 

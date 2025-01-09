@@ -1,46 +1,14 @@
-# Dependencias principales
-h2o==3.46.0.1
-pandas==2.0.3
-numpy==1.24.3
-scikit-learn==1.3.0
-scipy==1.10.1
-
-# Visualización
-matplotlib==3.7.2
-seaborn==0.12.2
-plotly==5.18.0
-kaleido==0.2.1
-
-# Análisis estadístico
-statsmodels==0.14.0
-
-# Optimización y rendimiento
-polars==0.19.0
-pyarrow==14.0.1
-
-# Utilidades
-python-dateutil==2.8.2
-joblib==1.3.2
-threadpoolctl==3.2.0
-tqdm==4.66.1
-psutil==5.9.0
-requests==2.31.0
-
-# Testing y desarrollo
-pytest==7.4.0
-pytest-html==4.1.0
-coverage==7.3.0
-
-# IA y LLM
-langchain==0.0.200
-gpt4all==1.0.0
-tqdm==4.66.1
-
-# Interpretabilidad
-shap==0.41.0
-lime==0.2.0.1
-dice-ml==0.9
-
-# Especificar Python
-python_requires = ">=3.9,<3.12"
+h2o>=3.40.0
+pandas>=1.3.0
+numpy>=1.20.0
+scikit-learn>=0.24.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+plotly>=5.3.0
+shap>=0.40.0
+lime>=0.2.0
+dice-ml>=0.9
+tqdm>=4.62.0
+statsmodels>=0.13.0
+ipython>=7.0.0
 

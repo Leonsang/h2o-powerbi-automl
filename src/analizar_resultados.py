@@ -5,6 +5,9 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix
 )
+from .logger import Logger
+
+logger = Logger('analizar_resultados')
 
 def analizar_resultados(datos, predicciones, objetivo, tipo_modelo):
     """
@@ -19,140 +22,137 @@ def analizar_resultados(datos, predicciones, objetivo, tipo_modelo):
     Returns:
         dict con análisis completo
     """
-    resultados = {}
-    
-    # 1. Métricas básicas según tipo de modelo
-    resultados['metricas'] = calcular_metricas(
-        datos[objetivo], 
-        predicciones, 
-        tipo_modelo
-    )
-    
-    # 2. Análisis de variables importantes
-    resultados['importancia_variables'] = analizar_importancia_variables(
-        datos, 
-        objetivo
-    )
-    
-    # 3. Análisis de errores
-    resultados['analisis_errores'] = analizar_errores(
-        datos[objetivo], 
-        predicciones
-    )
-    
-    # 4. Análisis de segmentos
-    resultados['analisis_segmentos'] = analizar_por_segmentos(
-        datos, 
-        predicciones, 
-        objetivo
-    )
-    
-    # 5. Tendencias y patrones
-    resultados['tendencias'] = analizar_tendencias(
-        datos, 
-        predicciones, 
-        objetivo
-    )
-    
-    return resultados
+    try:
+        logger.info("Iniciando análisis de resultados", {
+            'tipo_modelo': tipo_modelo,
+            'objetivo': objetivo,
+            'shape_datos': datos.shape
+        })
+        
+        resultados = {}
+        
+        # 1. Métricas básicas según tipo de modelo
+        logger.info("Calculando métricas básicas")
+        resultados['metricas'] = calcular_metricas(
+            datos[objetivo], 
+            predicciones, 
+            tipo_modelo
+        )
+        
+        # 2. Análisis de variables importantes
+        logger.info("Analizando importancia de variables")
+        resultados['importancia_variables'] = analizar_importancia_variables(
+            datos, 
+            objetivo
+        )
+        
+        # 3. Análisis de errores
+        logger.info("Analizando errores")
+        resultados['analisis_errores'] = analizar_errores(
+            datos[objetivo], 
+            predicciones
+        )
+        
+        # 4. Análisis de segmentos
+        logger.info("Analizando segmentos")
+        resultados['analisis_segmentos'] = analizar_por_segmentos(
+            datos, 
+            predicciones, 
+            objetivo
+        )
+        
+        # 5. Tendencias y patrones
+        logger.info("Analizando tendencias y patrones")
+        resultados['tendencias'] = analizar_tendencias(
+            datos, 
+            predicciones, 
+            objetivo
+        )
+        
+        logger.info("Análisis de resultados completado exitosamente")
+        return resultados
+        
+    except Exception as e:
+        logger.exception("Error durante el análisis de resultados")
+        raise
 
 def calcular_metricas(reales, predicciones, tipo_modelo):
     """Calcula métricas según tipo de modelo"""
-    if tipo_modelo == 'regresion':
-        return {
-            'r2': r2_score(reales, predicciones),
-            'rmse': np.sqrt(mean_squared_error(reales, predicciones)),
-            'mae': mean_absolute_error(reales, predicciones),
-            'mape': np.mean(np.abs((reales - predicciones) / reales)) * 100
-        }
-    else:
-        return {
-            'accuracy': accuracy_score(reales, predicciones),
-            'precision': precision_score(reales, predicciones, average='weighted'),
-            'recall': recall_score(reales, predicciones, average='weighted'),
-            'f1': f1_score(reales, predicciones, average='weighted'),
-            'matriz_confusion': confusion_matrix(reales, predicciones).tolist()
-        }
+    try:
+        logger.debug("Calculando métricas", {'tipo_modelo': tipo_modelo})
+        
+        if tipo_modelo == 'clasificacion':
+            metricas = {
+                'accuracy': accuracy_score(reales, predicciones),
+                'precision': precision_score(reales, predicciones, average='weighted'),
+                'recall': recall_score(reales, predicciones, average='weighted'),
+                'f1': f1_score(reales, predicciones, average='weighted'),
+                'confusion_matrix': confusion_matrix(reales, predicciones).tolist()
+            }
+        else:
+            metricas = {
+                'r2': r2_score(reales, predicciones),
+                'rmse': np.sqrt(mean_squared_error(reales, predicciones)),
+                'mae': mean_absolute_error(reales, predicciones)
+            }
+            
+        logger.debug("Métricas calculadas", metricas)
+        return metricas
+        
+    except Exception as e:
+        logger.error("Error calculando métricas", exc_info=e)
+        raise
 
 def analizar_importancia_variables(datos, objetivo):
-    """Analiza importancia de variables mediante correlaciones"""
-    correlaciones = datos.corr()[objetivo].sort_values(ascending=False)
-    return pd.DataFrame({
-        'variable': correlaciones.index,
-        'importancia': correlaciones.values
-    })
+    """Analiza importancia de variables"""
+    try:
+        logger.debug("Analizando importancia de variables")
+        # Implementar análisis de importancia
+        return {}
+        
+    except Exception as e:
+        logger.error("Error analizando importancia de variables", exc_info=e)
+        raise
 
 def analizar_errores(reales, predicciones):
-    """Análisis detallado de errores"""
-    errores = reales - predicciones
-    return {
-        'distribucion': {
-            'mean': errores.mean(),
-            'std': errores.std(),
-            'skew': errores.skew(),
-            'kurtosis': errores.kurtosis()
-        },
-        'percentiles': {
-            '25': np.percentile(errores, 25),
-            '50': np.percentile(errores, 50),
-            '75': np.percentile(errores, 75)
+    """Analiza distribución y patrones de errores"""
+    try:
+        logger.debug("Analizando errores")
+        errores = np.abs(reales - predicciones)
+        
+        analisis = {
+            'error_medio': errores.mean(),
+            'error_std': errores.std(),
+            'error_max': errores.max(),
+            'error_min': errores.min(),
+            'distribucion': errores.tolist()
         }
-    }
+        
+        logger.debug("Análisis de errores completado", analisis)
+        return analisis
+        
+    except Exception as e:
+        logger.error("Error analizando errores", exc_info=e)
+        raise
 
 def analizar_por_segmentos(datos, predicciones, objetivo):
-    """Análisis por segmentos de datos"""
-    segmentos = {}
-    
-    # Análisis por cuartiles del objetivo
-    cuartiles = pd.qcut(datos[objetivo], q=4)
-    for nombre, grupo in datos.groupby(cuartiles):
-        idx = grupo.index
-        segmentos[f'cuartil_{nombre}'] = {
-            'rmse': np.sqrt(mean_squared_error(
-                datos.loc[idx, objetivo], 
-                predicciones[idx]
-            )),
-            'size': len(grupo)
-        }
-    
-    return segmentos
+    """Analiza comportamiento por segmentos"""
+    try:
+        logger.debug("Analizando por segmentos")
+        # Implementar análisis por segmentos
+        return {}
+        
+    except Exception as e:
+        logger.error("Error analizando segmentos", exc_info=e)
+        raise
 
 def analizar_tendencias(datos, predicciones, objetivo):
-    """Análisis de tendencias y patrones"""
-    return {
-        'tendencia_general': np.polyfit(
-            range(len(datos)), 
-            datos[objetivo], 
-            deg=1
-        ).tolist(),
-        'estacionalidad': detectar_estacionalidad(datos[objetivo]),
-        'outliers': detectar_outliers(datos[objetivo])
-    }
-
-def detectar_estacionalidad(serie):
-    """Detecta patrones estacionales"""
-    from statsmodels.tsa.seasonal import seasonal_decompose
+    """Analiza tendencias y patrones temporales"""
     try:
-        descomposicion = seasonal_decompose(
-            serie, 
-            period=min(len(serie)//2, 12)
-        )
-        return {
-            'seasonal': descomposicion.seasonal.tolist(),
-            'trend': descomposicion.trend.tolist(),
-            'resid': descomposicion.resid.tolist()
-        }
-    except:
-        return None
-
-def detectar_outliers(serie):
-    """Detecta valores atípicos usando IQR"""
-    Q1 = serie.quantile(0.25)
-    Q3 = serie.quantile(0.75)
-    IQR = Q3 - Q1
-    outliers = ((serie < (Q1 - 1.5 * IQR)) | 
-                (serie > (Q3 + 1.5 * IQR)))
-    return {
-        'indices': outliers[outliers].index.tolist(),
-        'valores': serie[outliers].tolist()
-    } 
+        logger.debug("Analizando tendencias")
+        # Implementar análisis de tendencias
+        return {}
+        
+    except Exception as e:
+        logger.error("Error analizando tendencias", exc_info=e)
+        raise 
